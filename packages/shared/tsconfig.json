@@ -1,0 +1,10 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "jsx": "preserve",
+    "skipLibCheck": true,
+    "types": ["bun-types"]
+  },
+  "include": ["src/**/*"]
+}

@@ -1,0 +1,42 @@
+@import "tailwindcss";
+
+/* Design tokens — locked by directive */
+@theme {
+  --color-emerald-500: #10b981;
+  --color-emerald-400: #34d399;
+  --color-zinc-950: #09090b;
+  --font-sans:
+    "Geist Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+  --font-mono:
+    "Geist Mono Variable", ui-monospace, "SFMono-Regular", Menlo, Monaco, Consolas, monospace;
+  --font-display:
+    "Playfair Display Variable", ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+}
+
+html,
+body {
+  background-color: rgb(9, 9, 11); /* zinc-950 */
+  color: rgb(244, 244, 245); /* zinc-100 */
+  font-family: var(--font-sans);
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
+}
+
+.data-mono,
+[class*="font-mono"],
+code,
+pre,
+kbd {
+  font-family: var(--font-mono);
+}
+
+/* Make Playfair load with swap to keep LCP fast (p3 fix) */
+@font-face {
+  font-display: swap;
+  font-family: "Playfair Display Variable";
+}

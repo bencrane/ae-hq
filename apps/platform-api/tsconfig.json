@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "moduleResolution": "Bundler",
+    "module": "ESNext",
+    "noEmit": true,
+    "composite": false,
+    "types": ["bun-types"],
+    "skipLibCheck": true
+  },
+  "include": ["src/**/*", "test/**/*", "../../packages/shared/src/**/*"]
+}
