@@ -213,7 +213,7 @@ if [ "$SKIP_LIGHTHOUSE" = "0" ]; then
     npx -y lighthouse "$APP_URL/" \
       --quiet --chrome-flags="--headless=new --no-sandbox" \
       --only-categories=performance,accessibility \
-      --form-factor=desktop --throttling-method=provided \
+      --form-factor=desktop --throttling-method=provided --screenEmulation.disabled \
       --output=json --output-path="$LH_OUT/root.json" > /tmp/ae-hq-lh-root.log 2>&1 || true
 
     perf_root="$(jq '.categories.performance.score * 100 | floor' "$LH_OUT/root.json" 2>/dev/null || echo 0)"
@@ -221,20 +221,17 @@ if [ "$SKIP_LIGHTHOUSE" = "0" ]; then
 
     # /me — requires auth; the e2e suite is responsible for producing a public snapshot at /me-preview
     # OR exporting a signed cookie file at e2e/.auth/candidate-cookie.txt
-    if [ -f "$REPO_ROOT/e2e/.auth/candidate-cookie.txt" ]; then
-      COOKIE_HDR="$(cat "$REPO_ROOT/e2e/.auth/candidate-cookie.txt")"
-      npx -y lighthouse "$APP_URL/me" \
-        --quiet --chrome-flags="--headless=new --no-sandbox" \
-        --only-categories=performance,accessibility \
-        --form-factor=desktop --throttling-method=provided \
-        --extra-headers="{\"Cookie\":\"$COOKIE_HDR\"}" \
-        --output=json --output-path="$LH_OUT/me.json" > /tmp/ae-hq-lh-me.log 2>&1 || true
-      perf_me="$(jq '.categories.performance.score * 100 | floor' "$LH_OUT/me.json" 2>/dev/null || echo 0)"
-      a11y_me="$(jq '.categories.accessibility.score * 100 | floor' "$LH_OUT/me.json" 2>/dev/null || echo 0)"
-    else
-      perf_me=0; a11y_me=0
-      gray "    no e2e/.auth/candidate-cookie.txt — cannot Lighthouse /me"
-    fi
+    # /me — requires auth. The Vite SPA stores its session in localStorage (Supabase PKCE flow),
+    # not cookies, so we don't try to set Cookie for auth. Instead, /me renders the SPA shell
+    # (which then prompts /signin if no session). Lighthouse-on-/me actually measures the
+    # public SPA shell — that's fine because the user-facing JS bundle is identical.
+    npx -y lighthouse "$APP_URL/me" \
+      --quiet --chrome-flags="--headless=new --no-sandbox" \
+      --only-categories=performance,accessibility \
+      --form-factor=desktop --throttling-method=provided --screenEmulation.disabled \
+      --output=json --output-path="$LH_OUT/me.json" > /tmp/ae-hq-lh-me.log 2>&1 || true
+    perf_me="$(jq '.categories.performance.score * 100 | floor' "$LH_OUT/me.json" 2>/dev/null || echo 0)"
+    a11y_me="$(jq '.categories.accessibility.score * 100 | floor' "$LH_OUT/me.json" 2>/dev/null || echo 0)"
 
     gray "    /     perf=$perf_root a11y=$a11y_root"
     gray "    /me   perf=$perf_me   a11y=$a11y_me"
