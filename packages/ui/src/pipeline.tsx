@@ -254,7 +254,7 @@ export function ApplicantKanbanCard({
         <div className="min-w-0 flex-1">
           <div
             data-testid="kanban-card-label"
-            className={cx("truncate text-body-sm font-medium", textColor.strong)}
+            className={cx("line-clamp-2 text-body-sm font-medium", textColor.strong)}
           >
             {headline ?? "Account Executive"}
           </div>

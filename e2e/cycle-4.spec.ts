@@ -268,11 +268,20 @@ test.describe("cycle 4 — polish, flicker fix, real profiles", () => {
     expect(srcIdx, "no kanban column has a draggable card — seed is empty").toBeGreaterThanOrEqual(
       0,
     );
-    const destIdx = srcIdx === 0 ? colCount - 1 : 0;
+    // Drag to an ADJACENT column. Kanban columns are at a readable width
+    // (~300px) and the board scrolls horizontally within its own region — six
+    // columns do not all fit one viewport, and they MUST NOT be shrunk to make
+    // them fit (the carried-over cycle-4 failure). An adjacent-column drag
+    // never needs all columns on screen at once, so the test cannot pressure
+    // column width.
+    const destIdx = srcIdx + 1 < colCount ? srcIdx + 1 : srcIdx - 1;
 
     const card = columns.nth(srcIdx).locator("[data-testid='kanban-card']").first();
     const destCol = columns.nth(destIdx);
     await expect(card).toBeVisible({ timeout: 10_000 });
+    // bring the source column into view; an adjacent column is ~300px away so
+    // it is on screen too.
+    await card.scrollIntoViewIfNeeded();
 
     // capture the dragged card's identity so we can confirm it MOVED.
     const cardId = await card.getAttribute("data-pipeline-candidate-id");
