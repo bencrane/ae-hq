@@ -39,9 +39,16 @@ export interface StageHeaderProps {
 export function StageHeader({ name, count, color = "default", isTerminal }: StageHeaderProps) {
   return (
     <div className="flex flex-col gap-2">
-      <span className={cx("h-1 w-full rounded-full", STAGE_ACCENT[color] ?? STAGE_ACCENT.default)} />
+      <span
+        className={cx("h-1 w-full rounded-full", STAGE_ACCENT[color] ?? STAGE_ACCENT.default)}
+      />
       <div className="flex items-center justify-between gap-2">
-        <span className={cx("data-mono font-mono text-mono-xs uppercase tracking-wider", textColor.strong)}>
+        <span
+          className={cx(
+            "data-mono font-mono text-mono-xs uppercase tracking-wider",
+            textColor.strong,
+          )}
+        >
           {name}
         </span>
         <div className="flex items-center gap-1.5">
@@ -129,7 +136,12 @@ export function KanbanCard({
             {headline ?? "Account Executive"}
           </div>
           {meta ? (
-            <div className={cx("data-mono truncate font-mono text-mono-xs uppercase", textColor.subtle)}>
+            <div
+              className={cx(
+                "data-mono truncate font-mono text-mono-xs uppercase",
+                textColor.subtle,
+              )}
+            >
               {meta}
             </div>
           ) : null}

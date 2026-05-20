@@ -1,6 +1,13 @@
 /// <reference types="bun-types" />
-import { describe, it, expect } from "bun:test";
-import { jobSchema, candidateSchema, segmentSchema, methodologySchema, profileKindSchema, intentSignalSchema } from "./index";
+import { describe, expect, it } from "bun:test";
+import {
+  candidateSchema,
+  intentSignalSchema,
+  jobSchema,
+  methodologySchema,
+  profileKindSchema,
+  segmentSchema,
+} from "./index";
 
 describe("@ae-hq/shared schemas", () => {
   it("jobSchema validates a well-formed job", () => {

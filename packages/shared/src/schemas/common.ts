@@ -32,7 +32,15 @@ export const methodologySchema = z.enum([
 ]);
 export type Methodology = z.infer<typeof methodologySchema>;
 
-export const stageSchema = z.enum(["Seed", "SeriesA", "SeriesB", "SeriesC", "SeriesD", "Public", "Bootstrapped"]);
+export const stageSchema = z.enum([
+  "Seed",
+  "SeriesA",
+  "SeriesB",
+  "SeriesC",
+  "SeriesD",
+  "Public",
+  "Bootstrapped",
+]);
 export type Stage = z.infer<typeof stageSchema>;
 
 export const sizeRangeSchema = z.enum(["1-10", "11-50", "51-200", "201-500", "501-1000", "1001+"]);

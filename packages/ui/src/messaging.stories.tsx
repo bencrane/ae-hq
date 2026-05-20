@@ -61,8 +61,16 @@ export const MessageBubbleDefault: StoryObj = {
   name: "MessageBubble — mine + theirs",
   render: () => (
     <div className="flex max-w-lg flex-col gap-3">
-      <MessageBubble body="Hi — I came across your background closing enterprise fintech deals." timestamp="10:02" />
-      <MessageBubble body="Thanks for reaching out. What does the territory look like?" timestamp="10:14" mine read />
+      <MessageBubble
+        body="Hi — I came across your background closing enterprise fintech deals."
+        timestamp="10:02"
+      />
+      <MessageBubble
+        body="Thanks for reaching out. What does the territory look like?"
+        timestamp="10:14"
+        mine
+        read
+      />
       <MessageBubble body="Named-account model — 25 strategic accounts." timestamp="10:20" />
       <MessageBubble body="That lines up well. Let's set up a call." timestamp="10:31" mine />
     </div>
@@ -80,7 +88,10 @@ export const MessageThreadDefault: StoryObj = {
     <div className="flex h-80 max-w-lg flex-col border border-[color:var(--color-border-subtle)]">
       <MessageThread aria-label="Conversation with Stripe">
         <MessageDayDivider label="May 18" />
-        <MessageBubble body="Hello — open to a quick chat about an Enterprise AE seat?" timestamp="09:00" />
+        <MessageBubble
+          body="Hello — open to a quick chat about an Enterprise AE seat?"
+          timestamp="09:00"
+        />
         <MessageBubble body="Sure, tell me more about the role." timestamp="09:12" mine read />
         <MessageDayDivider label="May 19" />
         <MessageBubble body="Sending over the comp plan now." timestamp="11:40" />

@@ -75,11 +75,13 @@ export function Inbox() {
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["conversations"] }),
   });
+  // mark the open thread read once its messages load. readM.mutate is a
+  // stable callback from react-query; the effect re-runs only when the open
+  // conversation or its message data changes.
+  const readMutate = readM.mutate;
   useEffect(() => {
-    if (conversationId && messagesQ.data) readM.mutate(conversationId);
-    // readM is stable enough for this effect; intentionally not in deps
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [conversationId, messagesQ.data]);
+    if (conversationId && messagesQ.data) readMutate(conversationId);
+  }, [conversationId, messagesQ.data, readMutate]);
 
   const sendM = useMutation({
     mutationFn: async (body: string) => {

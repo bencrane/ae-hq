@@ -10,7 +10,7 @@
  * `<Link>` without the primitive depending on react-router.
  */
 
-import { type ReactNode } from "react";
+import type { ReactNode } from "react";
 import { Badge } from "./display";
 import { cx, textColor } from "./utils";
 
@@ -145,7 +145,12 @@ export function ArticleCardCompact({
             </span>
           ) : null}
         </div>
-        <div className={cx("mt-1.5 font-display text-body-lg font-medium leading-snug", textColor.strong)}>
+        <div
+          className={cx(
+            "mt-1.5 font-display text-body-lg font-medium leading-snug",
+            textColor.strong,
+          )}
+        >
           {title}
         </div>
         {authorName ? (
@@ -183,13 +188,20 @@ export function DataDropCard({ metric, label, caption, delta, as }: DataDropCard
   const inner = (
     <>
       <div className="flex items-center gap-2">
-        <span className={cx("data-mono font-mono text-mono-xs uppercase tracking-[0.2em]", textColor.accent)}>
+        <span
+          className={cx(
+            "data-mono font-mono text-mono-xs uppercase tracking-[0.2em]",
+            textColor.accent,
+          )}
+        >
           {">"}_ DATA DROP
         </span>
         {delta ? <Badge tone="good">{delta}</Badge> : null}
       </div>
       <div className="flex items-baseline gap-2">
-        <span className={cx("font-mono text-display-lg font-semibold tabular-nums", textColor.strong)}>
+        <span
+          className={cx("font-mono text-display-lg font-semibold tabular-nums", textColor.strong)}
+        >
           {metric}
         </span>
         <span className={cx("data-mono font-mono text-mono-sm uppercase", textColor.muted)}>

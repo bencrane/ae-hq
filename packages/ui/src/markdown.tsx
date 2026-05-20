@@ -16,7 +16,7 @@
  * code / links.
  */
 
-import { type ReactNode } from "react";
+import type { ReactNode } from "react";
 import { cx, textColor } from "./utils";
 
 // ─────────────── inline tokenizer ───────────────
@@ -141,12 +141,13 @@ export function Markdown({ source }: MarkdownProps) {
     }
 
     // horizontal rule — a line of 3+ dashes, asterisks, or underscores
-    if (/^\s*(-\s*){3,}$/.test(line) || /^\s*(\*\s*){3,}$/.test(line) || /^\s*(_\s*){3,}$/.test(line)) {
+    if (
+      /^\s*(-\s*){3,}$/.test(line) ||
+      /^\s*(\*\s*){3,}$/.test(line) ||
+      /^\s*(_\s*){3,}$/.test(line)
+    ) {
       blocks.push(
-        <hr
-          key={pushKey()}
-          className="my-8 h-px border-0 bg-[color:var(--color-border-subtle)]"
-        />,
+        <hr key={pushKey()} className="my-8 h-px border-0 bg-[color:var(--color-border-subtle)]" />,
       );
       i++;
       continue;
@@ -166,10 +167,30 @@ export function Markdown({ source }: MarkdownProps) {
       };
       const content = renderInline(text, k);
       const className = cx(cls[level], textColor.strong);
-      if (level === 1) blocks.push(<h2 key={k} className={className}>{content}</h2>);
-      else if (level === 2) blocks.push(<h3 key={k} className={className}>{content}</h3>);
-      else if (level === 3) blocks.push(<h4 key={k} className={className}>{content}</h4>);
-      else blocks.push(<h5 key={k} className={className}>{content}</h5>);
+      if (level === 1)
+        blocks.push(
+          <h2 key={k} className={className}>
+            {content}
+          </h2>,
+        );
+      else if (level === 2)
+        blocks.push(
+          <h3 key={k} className={className}>
+            {content}
+          </h3>,
+        );
+      else if (level === 3)
+        blocks.push(
+          <h4 key={k} className={className}>
+            {content}
+          </h4>,
+        );
+      else
+        blocks.push(
+          <h5 key={k} className={className}>
+            {content}
+          </h5>,
+        );
       i++;
       continue;
     }
@@ -228,6 +249,7 @@ export function Markdown({ source }: MarkdownProps) {
               <tr className="border-b border-[color:var(--color-border-subtle)]">
                 {headers.map((h, hi) => (
                   <th
+                    // biome-ignore lint/suspicious/noArrayIndexKey: markdown table cells are positional — index is the stable identity
                     key={`${k}-h${hi}`}
                     scope="col"
                     className={cx(
@@ -243,11 +265,13 @@ export function Markdown({ source }: MarkdownProps) {
             <tbody>
               {rows.map((r, ri) => (
                 <tr
+                  // biome-ignore lint/suspicious/noArrayIndexKey: markdown table rows are positional — index is the stable identity
                   key={`${k}-r${ri}`}
                   className="border-b border-[color:var(--color-border-subtle)] last:border-b-0"
                 >
                   {r.map((cell, ci) => (
                     <td
+                      // biome-ignore lint/suspicious/noArrayIndexKey: markdown table cells are positional — index is the stable identity
                       key={`${k}-r${ri}c${ci}`}
                       className={cx("px-4 py-3 text-body-sm", textColor.default)}
                     >
@@ -274,7 +298,11 @@ export function Markdown({ source }: MarkdownProps) {
       blocks.push(
         <ul key={k} className={cx("my-4 ml-5 flex list-disc flex-col gap-1.5", textColor.default)}>
           {items.map((it, ii) => (
-            <li key={`${k}-l${ii}`} className="text-body-md">
+            <li
+              // biome-ignore lint/suspicious/noArrayIndexKey: markdown list items are positional — index is the stable identity
+              key={`${k}-l${ii}`}
+              className="text-body-md"
+            >
               {renderInline(it, `${k}-l${ii}`)}
             </li>
           ))}
@@ -297,7 +325,11 @@ export function Markdown({ source }: MarkdownProps) {
           className={cx("my-4 ml-5 flex list-decimal flex-col gap-1.5", textColor.default)}
         >
           {items.map((it, ii) => (
-            <li key={`${k}-l${ii}`} className="text-body-md">
+            <li
+              // biome-ignore lint/suspicious/noArrayIndexKey: markdown list items are positional — index is the stable identity
+              key={`${k}-l${ii}`}
+              className="text-body-md"
+            >
               {renderInline(it, `${k}-l${ii}`)}
             </li>
           ))}

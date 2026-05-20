@@ -87,12 +87,27 @@ export const KanbanBoardDefault: StoryObj = {
   render: () => (
     <KanbanBoard aria-label="Pipeline">
       <KanbanColumn header={<StageHeader name="New" count={1} color="info" />}>
-        <KanbanCard initials="SA" headline="Enterprise AE" meta="Enterprise" moveTargets={MOVE_TARGETS} onMove={() => {}} />
+        <KanbanCard
+          initials="SA"
+          headline="Enterprise AE"
+          meta="Enterprise"
+          moveTargets={MOVE_TARGETS}
+          onMove={() => {}}
+        />
       </KanbanColumn>
       <KanbanColumn header={<StageHeader name="Reviewing" count={1} color="default" />}>
-        <KanbanCard initials="MR" headline="Mid-Market AE" meta="MidMarket" moveTargets={MOVE_TARGETS} onMove={() => {}} />
+        <KanbanCard
+          initials="MR"
+          headline="Mid-Market AE"
+          meta="MidMarket"
+          moveTargets={MOVE_TARGETS}
+          onMove={() => {}}
+        />
       </KanbanColumn>
-      <KanbanColumn header={<StageHeader name="Closed" count={0} color="muted" isTerminal />} emptyLabel="None" />
+      <KanbanColumn
+        header={<StageHeader name="Closed" count={0} color="muted" isTerminal />}
+        emptyLabel="None"
+      />
     </KanbanBoard>
   ),
 };
@@ -102,10 +117,26 @@ export const CandidateTimelineDefault: StoryObj = {
   render: () => (
     <div className="max-w-md">
       <CandidateTimeline>
-        <TimelineEntry kind="added_to_pipeline" timestamp="May 12" description="Added to the pipeline at New." />
-        <TimelineEntry kind="stage_changed" timestamp="May 14" description="Moved from New to Reviewing." />
-        <TimelineEntry kind="note_added" timestamp="May 15" description="Strong attainment — schedule a screen." />
-        <TimelineEntry kind="message_sent" timestamp="May 16" description="Recruiter sent a message." />
+        <TimelineEntry
+          kind="added_to_pipeline"
+          timestamp="May 12"
+          description="Added to the pipeline at New."
+        />
+        <TimelineEntry
+          kind="stage_changed"
+          timestamp="May 14"
+          description="Moved from New to Reviewing."
+        />
+        <TimelineEntry
+          kind="note_added"
+          timestamp="May 15"
+          description="Strong attainment — schedule a screen."
+        />
+        <TimelineEntry
+          kind="message_sent"
+          timestamp="May 16"
+          description="Recruiter sent a message."
+        />
       </CandidateTimeline>
     </div>
   ),

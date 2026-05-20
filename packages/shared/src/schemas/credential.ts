@@ -10,7 +10,12 @@ export const credentialKindSchema = z.enum([
 ]);
 export type CredentialKind = z.infer<typeof credentialKindSchema>;
 
-export const verificationTierSchema = z.enum(["self_reported", "csv_upload", "plaid_payroll", "ats_attestation"]);
+export const verificationTierSchema = z.enum([
+  "self_reported",
+  "csv_upload",
+  "plaid_payroll",
+  "ats_attestation",
+]);
 export type VerificationTier = z.infer<typeof verificationTierSchema>;
 
 export const verifiedCredentialSchema = z.object({
@@ -29,7 +34,11 @@ export type VerifiedCredential = z.infer<typeof verifiedCredentialSchema>;
 export const uploadSignRequestSchema = z.object({
   filename: z.string().min(1).max(255),
   content_type: z.string(),
-  byte_size: z.number().int().positive().max(20 * 1024 * 1024),
+  byte_size: z
+    .number()
+    .int()
+    .positive()
+    .max(20 * 1024 * 1024),
 });
 
 export const uploadSignResponseSchema = z.object({

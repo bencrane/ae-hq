@@ -17,7 +17,15 @@ export const companySchema = z.object({
 export type Company = z.infer<typeof companySchema>;
 
 export const companyPatchSchema = companySchema
-  .pick({ name: true, domain: true, logo_url: true, hq_location: true, size_range: true, stage: true, description: true })
+  .pick({
+    name: true,
+    domain: true,
+    logo_url: true,
+    hq_location: true,
+    size_range: true,
+    stage: true,
+    description: true,
+  })
   .partial();
 
 export const companyPublicSchema = companySchema.extend({

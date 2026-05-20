@@ -1,8 +1,8 @@
 import { useEffect, useRef } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { ConversationListItem, Message } from "@ae-hq/shared";
-import { api, jsonOf } from "./api";
-import { env } from "./env";
+import { api } from "./api";
+import { env } from "../env";
 import { supabase } from "./supabase";
 
 type ConversationListResponse = { conversations: ConversationListItem[] };

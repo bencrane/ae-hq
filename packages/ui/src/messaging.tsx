@@ -84,7 +84,9 @@ export function ConversationListItem({
           ) : null}
         </div>
         {subtitle ? (
-          <div className={cx("data-mono truncate font-mono text-mono-xs uppercase", textColor.subtle)}>
+          <div
+            className={cx("data-mono truncate font-mono text-mono-xs uppercase", textColor.subtle)}
+          >
             {subtitle}
           </div>
         ) : null}
@@ -108,9 +110,7 @@ export function ConversationListItem({
   );
   const className = cx(
     "flex w-full items-center gap-3 px-5 py-4 text-left transition-colors",
-    active
-      ? "bg-[color:var(--color-accent-soft)]"
-      : "hover:bg-[color:var(--color-surface-raised)]",
+    active ? "bg-[color:var(--color-accent-soft)]" : "hover:bg-[color:var(--color-surface-raised)]",
   );
   return (
     <li>
@@ -133,13 +133,15 @@ export interface MessageDayDividerProps {
 }
 
 export function MessageDayDivider({ label }: MessageDayDividerProps) {
+  // The visible label IS the semantics — no ARIA role needed; the rules are
+  // purely decorative and marked aria-hidden.
   return (
-    <div className="flex items-center gap-3 py-2" role="separator" aria-label={label}>
-      <span className="h-px flex-1 bg-[color:var(--color-border-subtle)]" />
+    <div className="flex items-center gap-3 py-2">
+      <span aria-hidden className="h-px flex-1 bg-[color:var(--color-border-subtle)]" />
       <span className={cx("data-mono font-mono text-mono-xs uppercase", textColor.subtle)}>
         {label}
       </span>
-      <span className="h-px flex-1 bg-[color:var(--color-border-subtle)]" />
+      <span aria-hidden className="h-px flex-1 bg-[color:var(--color-border-subtle)]" />
     </div>
   );
 }
@@ -290,7 +292,12 @@ export interface ThreadEmptyStateProps {
 export function ThreadEmptyState({ title, description }: ThreadEmptyStateProps) {
   return (
     <div className="flex flex-1 flex-col items-center justify-center px-6 py-20 text-center">
-      <div className={cx("data-mono font-mono text-mono-xs uppercase tracking-[0.2em]", textColor.subtle)}>
+      <div
+        className={cx(
+          "data-mono font-mono text-mono-xs uppercase tracking-[0.2em]",
+          textColor.subtle,
+        )}
+      >
         {">"}_ INBOX
       </div>
       <h3 className={cx("mt-3 font-display text-display-sm", textColor.strong)}>

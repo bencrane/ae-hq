@@ -4,6 +4,7 @@ import { TopNav } from "./components/TopNav";
 import { CandidateLayout } from "./components/CandidateLayout";
 import { CompanyLayout } from "./components/CompanyLayout";
 import { useAuth } from "./lib/auth";
+import { useMe } from "./lib/use-me";
 
 const Home = lazy(() => import("./routes/Home").then((m) => ({ default: m.Home })));
 const JobDetail = lazy(() => import("./routes/JobDetail").then((m) => ({ default: m.JobDetail })));
@@ -22,6 +23,10 @@ const CoCandidateDetail = lazy(() => import("./routes/CoCandidateDetail").then((
 const CoCompany = lazy(() => import("./routes/CoCompany").then((m) => ({ default: m.CoCompany })));
 const CoAts = lazy(() => import("./routes/CoAts").then((m) => ({ default: m.CoAts })));
 const CoBilling = lazy(() => import("./routes/CoBilling").then((m) => ({ default: m.CoBilling })));
+const CoPipeline = lazy(() => import("./routes/CoPipeline").then((m) => ({ default: m.CoPipeline })));
+const Inbox = lazy(() => import("./routes/Inbox").then((m) => ({ default: m.Inbox })));
+const Insights = lazy(() => import("./routes/Insights").then((m) => ({ default: m.Insights })));
+const ArticleDetail = lazy(() => import("./routes/ArticleDetail").then((m) => ({ default: m.ArticleDetail })));
 
 function PageFallback() {
   return (
@@ -61,6 +66,18 @@ function CompanyShell() {
   return <CompanyLayout />;
 }
 
+/**
+ * Shell for routes shared by both portals (/inbox, /insights). It renders the
+ * sidebar layout that matches the signed-in user's kind — CandidateLayout for
+ * candidates, CompanyLayout for company members — so a shared route still gets
+ * the right chrome for whoever is viewing it.
+ */
+function SharedPortalShell() {
+  const me = useMe(true);
+  if (!me) return <PageFallback />;
+  return me.profile.kind === "company_member" ? <CompanyLayout /> : <CandidateLayout />;
+}
+
 export function App() {
   return (
     <Routes>
@@ -75,8 +92,9 @@ export function App() {
         <Route path="*" element={<NotFound />} />
       </Route>
 
-      {/* Candidate portal — left sidebar */}
+      {/* Authed portals — left sidebar */}
       <Route element={<Protected />}>
+        {/* Candidate portal */}
         <Route element={<CandidateShell />}>
           <Route path="/me" element={<Me />} />
           <Route path="/me/profile" element={<MeProfile />} />
@@ -85,7 +103,7 @@ export function App() {
           <Route path="/me/approvals" element={<MeApprovals />} />
         </Route>
 
-        {/* Company portal — left sidebar */}
+        {/* Company portal */}
         <Route element={<CompanyShell />}>
           <Route path="/co" element={<Co />} />
           <Route path="/co/candidates" element={<CoCandidates />} />
@@ -93,6 +111,15 @@ export function App() {
           <Route path="/co/company" element={<CoCompany />} />
           <Route path="/co/ats" element={<CoAts />} />
           <Route path="/co/billing" element={<CoBilling />} />
+          <Route path="/co/pipeline" element={<CoPipeline />} />
+        </Route>
+
+        {/* Shared portal routes — shell picks the layout by user kind */}
+        <Route element={<SharedPortalShell />}>
+          <Route path="/inbox" element={<Inbox />} />
+          <Route path="/inbox/:conversationId" element={<Inbox />} />
+          <Route path="/insights" element={<Insights />} />
+          <Route path="/insights/:slug" element={<ArticleDetail />} />
         </Route>
       </Route>
     </Routes>

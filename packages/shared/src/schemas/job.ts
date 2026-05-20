@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { segmentSchema, methodologySchema, stageSchema } from "./common";
+import { methodologySchema, segmentSchema, stageSchema } from "./common";
 
 export const jobSchema = z.object({
   id: z.string().uuid(),

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { stageSchema, segmentSchema } from "./common";
+import { segmentSchema, stageSchema } from "./common";
 
 export const intentSignalSchema = z.object({
   candidate_id: z.string().uuid(),

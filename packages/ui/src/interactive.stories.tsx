@@ -39,9 +39,7 @@ export const TabListOnly: StoryObj = {
   name: "TabList — standalone",
   render: () => {
     const [tab, setTab] = useState("comp");
-    return (
-      <TabList aria-label="Sections" value={tab} onValueChange={setTab} items={TAB_ITEMS} />
-    );
+    return <TabList aria-label="Sections" value={tab} onValueChange={setTab} items={TAB_ITEMS} />;
   },
 };
 

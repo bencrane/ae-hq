@@ -6,6 +6,8 @@ import {
   Compass,
   BadgeCheck,
   Inbox,
+  MessagesSquare,
+  Newspaper,
   Briefcase,
   Bell,
   LogOut,
@@ -36,6 +38,8 @@ const NAV: ReadonlyArray<NavItem> = [
   { to: "/me/intent", label: "Intent", icon: Compass },
   { to: "/me/credentials", label: "Credentials", icon: BadgeCheck },
   { to: "/me/approvals", label: "Approvals", icon: Inbox },
+  { to: "/inbox", label: "Messages", icon: MessagesSquare },
+  { to: "/insights", label: "Insights", icon: Newspaper },
 ];
 
 export function CandidateLayout() {

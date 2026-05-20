@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { segmentSchema, methodologySchema } from "./common";
+import { methodologySchema, segmentSchema } from "./common";
 
 export const candidateSchema = z.object({
   user_id: z.string().uuid(),
@@ -12,7 +12,13 @@ export const candidateSchema = z.object({
 export type Candidate = z.infer<typeof candidateSchema>;
 
 export const candidatePatchSchema = candidateSchema
-  .pick({ headline: true, linkedin_url: true, segment_focus: true, methodology: true, current_company_id: true })
+  .pick({
+    headline: true,
+    linkedin_url: true,
+    segment_focus: true,
+    methodology: true,
+    current_company_id: true,
+  })
   .partial();
 export type CandidatePatch = z.infer<typeof candidatePatchSchema>;
 

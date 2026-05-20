@@ -6,6 +6,9 @@ import {
   Building2,
   Cable,
   CreditCard,
+  MessagesSquare,
+  KanbanSquare,
+  Newspaper,
   Bell,
   LogOut,
 } from "lucide-react";
@@ -32,6 +35,9 @@ type NavItem = {
 const NAV: ReadonlyArray<NavItem> = [
   { to: "/co", end: true, label: "Dashboard", icon: LayoutDashboard },
   { to: "/co/candidates", label: "Candidates", icon: Users },
+  { to: "/co/pipeline", label: "Pipeline", icon: KanbanSquare },
+  { to: "/inbox", label: "Messages", icon: MessagesSquare },
+  { to: "/insights", label: "Insights", icon: Newspaper },
   { to: "/co/company", label: "Company page", icon: Building2 },
   { to: "/co/ats", label: "ATS sync", icon: Cable },
   { to: "/co/billing", label: "Billing", icon: CreditCard },

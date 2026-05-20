@@ -10,7 +10,7 @@
  * option toggles on click; selection is controlled.
  */
 
-import { type KeyboardEvent, type ReactNode, useId } from "react";
+import type { KeyboardEvent, ReactNode } from "react";
 import { cx, textColor } from "./utils";
 
 // ────────────── Tabs ──────────────
@@ -68,7 +68,6 @@ export function TabList({
     }
   }
   return (
-    // biome-ignore lint/a11y/useFocusableInteractive: focus lives on the active tab button, not the tablist
     <div
       role="tablist"
       aria-label={ariaLabel}
@@ -163,24 +162,18 @@ export function PreferenceTagPicker({
   onChange,
   disabled,
 }: PreferenceTagPickerProps) {
-  const groupId = useId();
   function toggle(value: string) {
     if (disabled) return;
-    onChange(
-      selected.includes(value)
-        ? selected.filter((v) => v !== value)
-        : [...selected, value],
-    );
+    onChange(selected.includes(value) ? selected.filter((v) => v !== value) : [...selected, value]);
   }
+  // <fieldset> + <legend> is the semantic grouping element for a set of
+  // related toggle controls — no ARIA role needed.
   return (
-    <div role="group" aria-labelledby={legend ? groupId : undefined} className="flex flex-col gap-2">
+    <fieldset className="flex flex-col gap-2 border-0 p-0">
       {legend ? (
-        <span
-          id={groupId}
-          className={cx("data-mono font-mono text-mono-xs uppercase", textColor.muted)}
-        >
+        <legend className={cx("data-mono mb-2 font-mono text-mono-xs uppercase", textColor.muted)}>
           {legend}
-        </span>
+        </legend>
       ) : null}
       <div className="flex flex-wrap gap-2">
         {options.map((o) => {
@@ -211,6 +204,6 @@ export function PreferenceTagPicker({
           );
         })}
       </div>
-    </div>
+    </fieldset>
   );
 }
