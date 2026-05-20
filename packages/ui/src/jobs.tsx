@@ -260,7 +260,7 @@ export function CompanyProfileHeader({
         <dl className="flex flex-wrap gap-x-8 gap-y-3">
           {facts.map((f) => (
             <div key={f.label} className="flex flex-col gap-0.5">
-              <dt className={cx("data-mono font-mono text-mono-xs uppercase", textColor.subtle)}>
+              <dt className={cx("data-mono font-mono text-mono-xs uppercase", textColor.muted)}>
                 {f.label}
               </dt>
               <dd className={cx("text-body-sm font-medium", textColor.strong)}>{f.value}</dd>
