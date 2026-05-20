@@ -56,7 +56,12 @@ export const KanbanColumnDefault: StoryObj = {
         stageId="stage-2"
         header={<StageHeader name="Phone Screen" count={2} color="warn" />}
       >
-        <KanbanCard candidateId="cand-2" initials="MR" headline="Mid-Market AE" meta="MidMarket // 5 yrs" />
+        <KanbanCard
+          candidateId="cand-2"
+          initials="MR"
+          headline="Mid-Market AE"
+          meta="MidMarket // 5 yrs"
+        />
         <KanbanCard
           candidateId="cand-3"
           initials="JD"
@@ -89,7 +94,10 @@ export const KanbanBoardDefault: StoryObj = {
       <KanbanColumn stageId="s1" header={<StageHeader name="New" count={1} color="info" />}>
         <KanbanCard candidateId="c1" initials="SA" headline="Enterprise AE" meta="Enterprise" />
       </KanbanColumn>
-      <KanbanColumn stageId="s2" header={<StageHeader name="Reviewing" count={1} color="default" />}>
+      <KanbanColumn
+        stageId="s2"
+        header={<StageHeader name="Reviewing" count={1} color="default" />}
+      >
         <KanbanCard candidateId="c2" initials="MR" headline="Mid-Market AE" meta="MidMarket" />
       </KanbanColumn>
       <KanbanColumn

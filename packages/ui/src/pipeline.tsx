@@ -206,7 +206,10 @@ export function KanbanColumn({ stageId, header, children, emptyLabel }: KanbanCo
       data-testid="kanban-column"
       data-pipeline-stage-id={stageId}
       className={cx(
-        "flex w-[280px] shrink-0 flex-col gap-3 rounded-xl border p-3 transition-colors",
+        // 176px — six stage columns fit a 1440px viewport without horizontal
+        // scroll, and overflow (scroll) at ≤1280px. shrink-0 keeps every column
+        // its full width inside the board's horizontal scroll region.
+        "flex w-[176px] shrink-0 flex-col gap-3 rounded-xl border p-3 transition-colors",
         "border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-raised-translucent)]",
         isOver && "border-[color:var(--color-border-accent)] bg-[color:var(--color-accent-soft)]",
       )}
@@ -275,7 +278,7 @@ export function KanbanBoard({
       <div
         aria-label={ariaLabel ?? "Pipeline board"}
         data-testid="kanban-board"
-        className="flex w-full gap-4 overflow-x-auto pb-3"
+        className="flex w-full gap-3 overflow-x-auto pb-3"
       >
         {children}
       </div>
