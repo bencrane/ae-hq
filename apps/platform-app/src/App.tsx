@@ -25,6 +25,8 @@ const CoCompany = lazy(() => import("./routes/CoCompany").then((m) => ({ default
 const CoAts = lazy(() => import("./routes/CoAts").then((m) => ({ default: m.CoAts })));
 const CoBilling = lazy(() => import("./routes/CoBilling").then((m) => ({ default: m.CoBilling })));
 const CoPipeline = lazy(() => import("./routes/CoPipeline").then((m) => ({ default: m.CoPipeline })));
+const CoJobs = lazy(() => import("./routes/CoJobs").then((m) => ({ default: m.CoJobs })));
+const CoJobPipeline = lazy(() => import("./routes/CoJobPipeline").then((m) => ({ default: m.CoJobPipeline })));
 const Inbox = lazy(() => import("./routes/Inbox").then((m) => ({ default: m.Inbox })));
 const Insights = lazy(() => import("./routes/Insights").then((m) => ({ default: m.Insights })));
 const ArticleDetail = lazy(() => import("./routes/ArticleDetail").then((m) => ({ default: m.ArticleDetail })));
@@ -116,6 +118,8 @@ export function App() {
           <Route path="/co/ats" element={<CoAts />} />
           <Route path="/co/billing" element={<CoBilling />} />
           <Route path="/co/pipeline" element={<CoPipeline />} />
+          <Route path="/co/jobs" element={<CoJobs />} />
+          <Route path="/co/jobs/:id" element={<CoJobPipeline />} />
 
           {/* Shared portal routes */}
           <Route path="/inbox" element={<Inbox />} />

@@ -40,10 +40,29 @@ export function Co() {
         title={coQ.data?.company?.name ?? "Your company"}
       />
 
-      <Grid cols={1} mdCols={3} gap="6">
+      <Grid cols={1} mdCols={2} gap="6">
         <Card>
           <CardHeader>
-            <SectionLabel index={2}>SUBSCRIPTION</SectionLabel>
+            <SectionLabel index={2}>HIRING</SectionLabel>
+          </CardHeader>
+          <CardBody>
+            <div className="font-display text-body-lg text-[color:var(--color-text-strong)]">
+              Job postings &amp; pipelines
+            </div>
+            <p className="mt-1 text-body-sm text-[color:var(--color-text-muted)]">
+              Every posting with its applicant count and funnel. Open one to work its pipeline.
+            </p>
+            <Link
+              to="/co/jobs"
+              className="data-mono mt-4 inline-block font-mono text-mono-xs uppercase text-[color:var(--color-text-accent)] hover:text-[color:var(--color-accent-primaryHover)]"
+            >
+              View job postings →
+            </Link>
+          </CardBody>
+        </Card>
+        <Card>
+          <CardHeader>
+            <SectionLabel index={3}>SUBSCRIPTION</SectionLabel>
           </CardHeader>
           <CardBody>
             <Stat
@@ -62,7 +81,7 @@ export function Co() {
         </Card>
         <Card>
           <CardHeader>
-            <SectionLabel index={3}>SEARCH</SectionLabel>
+            <SectionLabel index={4}>SEARCH</SectionLabel>
           </CardHeader>
           <CardBody>
             <Link
@@ -75,7 +94,7 @@ export function Co() {
         </Card>
         <Card>
           <CardHeader>
-            <SectionLabel index={4}>INTEGRATIONS</SectionLabel>
+            <SectionLabel index={5}>INTEGRATIONS</SectionLabel>
           </CardHeader>
           <CardBody>
             <Stack gap="2">

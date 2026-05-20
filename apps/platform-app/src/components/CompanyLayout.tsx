@@ -4,6 +4,7 @@ import {
   LayoutDashboard,
   Users,
   Building2,
+  Briefcase,
   Cable,
   CreditCard,
   MessagesSquare,
@@ -39,6 +40,7 @@ type NavItem = {
 
 const NAV: ReadonlyArray<NavItem> = [
   { to: "/co", end: true, label: "Dashboard", icon: LayoutDashboard },
+  { to: "/co/jobs", label: "Job postings", icon: Briefcase },
   { to: "/co/candidates", label: "Candidates", icon: Users },
   { to: "/co/pipeline", label: "Pipeline", icon: KanbanSquare },
   { to: "/inbox", label: "Messages", icon: MessagesSquare },
