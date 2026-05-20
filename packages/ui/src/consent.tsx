@@ -36,12 +36,16 @@ export interface ToggleProps {
  * description + track) is one labelled control. Effortless, not a form field.
  */
 export function Toggle({ id, checked, onChange, label, description, disabled }: ToggleProps) {
+  // The switch button is empty (the track has no text), so it gets its
+  // accessible name from the label via `aria-labelledby` — a `<label for>`
+  // association alone is not reliably picked up for a `role="switch"` button.
+  const labelId = `${id}-label`;
   return (
     <div className="flex items-start justify-between gap-4">
       <div className="min-w-0">
-        <label htmlFor={id} className={cx("block text-body-sm font-medium", textColor.default)}>
+        <span id={labelId} className={cx("block text-body-sm font-medium", textColor.default)}>
           {label}
-        </label>
+        </span>
         {description ? (
           <p className={cx("mt-1 text-body-xs", textColor.muted)}>{description}</p>
         ) : null}
@@ -51,6 +55,7 @@ export function Toggle({ id, checked, onChange, label, description, disabled }: 
         id={id}
         role="switch"
         aria-checked={checked}
+        aria-labelledby={labelId}
         disabled={disabled}
         onClick={() => onChange(!checked)}
         className={cx(

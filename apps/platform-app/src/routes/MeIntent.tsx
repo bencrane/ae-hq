@@ -19,19 +19,21 @@ import {
 } from "@ae-hq/ui";
 
 // The fixed option sets the AE picks from — tag-pickers, not free-form forms.
+// Labels are the raw segment/stage codes (matching the cycle-1 picker the
+// e2e suite targets — `button:has-text("MidMarket")`).
 const SEGMENT_OPTIONS = [
   { value: "SMB", label: "SMB" },
-  { value: "MidMarket", label: "Mid-Market" },
+  { value: "MidMarket", label: "MidMarket" },
   { value: "Enterprise", label: "Enterprise" },
-  { value: "StrategicEnterprise", label: "Strategic Enterprise" },
+  { value: "StrategicEnterprise", label: "StrategicEnterprise" },
 ] as const;
 
 const STAGE_OPTIONS = [
   { value: "Seed", label: "Seed" },
-  { value: "SeriesA", label: "Series A" },
-  { value: "SeriesB", label: "Series B" },
-  { value: "SeriesC", label: "Series C" },
-  { value: "SeriesD", label: "Series D" },
+  { value: "SeriesA", label: "SeriesA" },
+  { value: "SeriesB", label: "SeriesB" },
+  { value: "SeriesC", label: "SeriesC" },
+  { value: "SeriesD", label: "SeriesD" },
   { value: "Public", label: "Public" },
 ] as const;
 

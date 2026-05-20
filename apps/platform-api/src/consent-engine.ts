@@ -456,6 +456,15 @@ async function resolveMatch(match: MatchRow, createdBy: string): Promise<MatchRo
  * untouched. If it is pending and the new action satisfies the missing side,
  * it resolves it.
  *
+ * Resolution happens on an interest ACTION only. A criteria PUT
+ * (company match-criteria or AE intent) is NOT an interest action — a
+ * `pending_company` match does NOT auto-resolve when the company later
+ * widens its criteria to admit the AE. This is the directive's
+ * "resolution on the action" model; the next interest action that
+ * re-touches the pair re-evaluates and can resolve it.
+ * TODO(cycle-7): a retroactive re-sweep of stale pending matches on a
+ * criteria change — deliberately out of scope here (would be scope creep).
+ *
  * @param origin       which side initiated this action
  * @param companyId    the company
  * @param candidateId  the AE
