@@ -1,6 +1,8 @@
 import { lazy, Suspense } from "react";
 import { Routes, Route, Navigate, Outlet } from "react-router-dom";
 import { TopNav } from "./components/TopNav";
+import { CandidateLayout } from "./components/CandidateLayout";
+import { CompanyLayout } from "./components/CompanyLayout";
 import { useAuth } from "./lib/auth";
 
 const Home = lazy(() => import("./routes/Home").then((m) => ({ default: m.Home })));
@@ -38,7 +40,7 @@ function Protected() {
   return <Outlet />;
 }
 
-function Shell() {
+function PublicShell() {
   return (
     <>
       <TopNav />
@@ -51,22 +53,40 @@ function Shell() {
   );
 }
 
+function CandidateShell() {
+  return <CandidateLayout />;
+}
+
+function CompanyShell() {
+  return <CompanyLayout />;
+}
+
 export function App() {
   return (
     <Routes>
-      <Route element={<Shell />}>
+      {/* Public routes — top nav shell */}
+      <Route element={<PublicShell />}>
         <Route index element={<Home />} />
         <Route path="/jobs/:id" element={<JobDetail />} />
         <Route path="/companies/:slug" element={<CompanyPublic />} />
         <Route path="/signin" element={<SignIn />} />
         <Route path="/signup" element={<SignUp />} />
         <Route path="/404" element={<NotFound />} />
-        <Route element={<Protected />}>
+        <Route path="*" element={<NotFound />} />
+      </Route>
+
+      {/* Candidate portal — left sidebar */}
+      <Route element={<Protected />}>
+        <Route element={<CandidateShell />}>
           <Route path="/me" element={<Me />} />
           <Route path="/me/profile" element={<MeProfile />} />
           <Route path="/me/intent" element={<MeIntent />} />
           <Route path="/me/credentials" element={<MeCredentials />} />
           <Route path="/me/approvals" element={<MeApprovals />} />
+        </Route>
+
+        {/* Company portal — left sidebar */}
+        <Route element={<CompanyShell />}>
           <Route path="/co" element={<Co />} />
           <Route path="/co/candidates" element={<CoCandidates />} />
           <Route path="/co/candidates/:id" element={<CoCandidateDetail />} />
@@ -74,7 +94,6 @@ export function App() {
           <Route path="/co/ats" element={<CoAts />} />
           <Route path="/co/billing" element={<CoBilling />} />
         </Route>
-        <Route path="*" element={<NotFound />} />
       </Route>
     </Routes>
   );
