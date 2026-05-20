@@ -15,6 +15,13 @@ export default defineConfig({
   server: {
     port: 5173,
     host: "0.0.0.0",
+    fs: {
+      // Monorepo: serve from the workspace root. Bun hoists deps into
+      // node_modules/.bun/ at the repo root — Fontsource fonts and Vite's
+      // own client runtime live there. Without this, Vite's default allow
+      // list is scoped to apps/platform-app and blocks them (unstyled page).
+      allow: [path.resolve(__dirname, "../..")],
+    },
   },
   build: {
     target: "es2022",
