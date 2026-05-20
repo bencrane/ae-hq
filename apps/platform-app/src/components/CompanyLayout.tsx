@@ -12,6 +12,8 @@ import {
   Newspaper,
   Bell,
   LogOut,
+  Radar,
+  SlidersHorizontal,
 } from "lucide-react";
 import { useAuth } from "../lib/auth";
 import { useNotifications } from "../lib/use-notifications";
@@ -41,7 +43,9 @@ type NavItem = {
 const NAV: ReadonlyArray<NavItem> = [
   { to: "/co", end: true, label: "Dashboard", icon: LayoutDashboard },
   { to: "/co/jobs", label: "Job postings", icon: Briefcase },
+  { to: "/co/discover", label: "Discover", icon: Radar },
   { to: "/co/candidates", label: "Candidates", icon: Users },
+  { to: "/co/match-criteria", label: "Match criteria", icon: SlidersHorizontal },
   { to: "/co/pipeline", label: "Pipeline", icon: KanbanSquare },
   { to: "/inbox", label: "Messages", icon: MessagesSquare },
   { to: "/insights", label: "Insights", icon: Newspaper },

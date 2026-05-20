@@ -168,7 +168,7 @@ If a one-off variant is genuinely needed, use the primitive's `unsafe_className`
 
 | Variant | Width | Used by |
 |---------|-------|---------|
-| `narrow` | 48rem (768px) | SignIn, SignUp, MeProfile, MeIntent, NotFound, CoCompany |
+| `narrow` | 48rem (768px) | SignIn, SignUp, MeProfile, MeIntent, NotFound, CoCompany, CoMatchCriteria |
 | `default` | 72rem (1152px) | Me, MeCredentials, MeApprovals, Co, CoCandidateDetail, CoAts, CoBilling, JobDetail, CompanyPublic |
-| `wide` | 84rem (1344px) | Home, CoCandidates |
+| `wide` | 84rem (1344px) | Home, CoCandidates, CoDiscover |
 | `full` | none | reserved for cycle 3 (messaging spine) |

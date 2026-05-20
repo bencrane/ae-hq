@@ -1,11 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { useState } from "react";
-import {
-  Toggle,
-  MatchStatusBadge,
-  AnonymousCandidateCard,
-  type MatchStatus,
-} from "./consent";
+import { AnonymousCandidateCard, type MatchStatus, MatchStatusBadge, Toggle } from "./consent";
 import { Button } from "./display";
 
 const meta = {

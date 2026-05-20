@@ -39,10 +39,7 @@ export function Toggle({ id, checked, onChange, label, description, disabled }: 
   return (
     <div className="flex items-start justify-between gap-4">
       <div className="min-w-0">
-        <label
-          htmlFor={id}
-          className={cx("block text-body-sm font-medium", textColor.default)}
-        >
+        <label htmlFor={id} className={cx("block text-body-sm font-medium", textColor.default)}>
           {label}
         </label>
         {description ? (
@@ -80,21 +77,13 @@ export function Toggle({ id, checked, onChange, label, description, disabled }: 
 
 // ────────────── MatchStatusBadge ──────────────
 
-export type MatchStatus =
-  | "resolved"
-  | "pending_ae"
-  | "pending_company"
-  | "declined"
-  | "expired";
+export type MatchStatus = "resolved" | "pending_ae" | "pending_company" | "declined" | "expired";
 
 export interface MatchStatusBadgeProps {
   status: MatchStatus;
 }
 
-const MATCH_STATUS_META: Record<
-  MatchStatus,
-  { label: string; classes: string }
-> = {
+const MATCH_STATUS_META: Record<MatchStatus, { label: string; classes: string }> = {
   resolved: {
     label: "Connected",
     classes:
@@ -195,7 +184,9 @@ export function AnonymousCandidateCard({
       className={cx(
         "flex items-center gap-4 rounded-xl border p-4",
         "border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-raised)]",
-        onClick ? "cursor-pointer transition-colors hover:border-[color:var(--color-border-default)]" : "",
+        onClick
+          ? "cursor-pointer transition-colors hover:border-[color:var(--color-border-default)]"
+          : "",
       )}
       onClick={onClick}
       onKeyDown={

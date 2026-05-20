@@ -21,6 +21,8 @@ const MeApprovals = lazy(() => import("./routes/MeApprovals").then((m) => ({ def
 const Co = lazy(() => import("./routes/Co").then((m) => ({ default: m.Co })));
 const CoCandidates = lazy(() => import("./routes/CoCandidates").then((m) => ({ default: m.CoCandidates })));
 const CoCandidateDetail = lazy(() => import("./routes/CoCandidateDetail").then((m) => ({ default: m.CoCandidateDetail })));
+const CoDiscover = lazy(() => import("./routes/CoDiscover").then((m) => ({ default: m.CoDiscover })));
+const CoMatchCriteria = lazy(() => import("./routes/CoMatchCriteria").then((m) => ({ default: m.CoMatchCriteria })));
 const CoCompany = lazy(() => import("./routes/CoCompany").then((m) => ({ default: m.CoCompany })));
 const CoAts = lazy(() => import("./routes/CoAts").then((m) => ({ default: m.CoAts })));
 const CoBilling = lazy(() => import("./routes/CoBilling").then((m) => ({ default: m.CoBilling })));
@@ -114,6 +116,8 @@ export function App() {
           <Route path="/co" element={<Co />} />
           <Route path="/co/candidates" element={<CoCandidates />} />
           <Route path="/co/candidates/:id" element={<CoCandidateDetail />} />
+          <Route path="/co/discover" element={<CoDiscover />} />
+          <Route path="/co/match-criteria" element={<CoMatchCriteria />} />
           <Route path="/co/company" element={<CoCompany />} />
           <Route path="/co/ats" element={<CoAts />} />
           <Route path="/co/billing" element={<CoBilling />} />
