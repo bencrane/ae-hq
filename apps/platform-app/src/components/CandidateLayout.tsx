@@ -40,6 +40,7 @@ type NavItem = {
 
 const NAV: ReadonlyArray<NavItem> = [
   { to: "/me", end: true, label: "Dashboard", icon: LayoutDashboard },
+  { to: "/me/jobs", label: "Browse jobs", icon: Briefcase },
   { to: "/me/profile", label: "Profile", icon: UserCircle2 },
   { to: "/me/intent", label: "Intent", icon: Compass },
   { to: "/me/credentials", label: "Credentials", icon: BadgeCheck },
@@ -129,21 +130,6 @@ export function CandidateLayout() {
                 </NavLink>
               </li>
             ))}
-          </ul>
-
-          <div className="data-mono mb-2 mt-6 px-3 font-mono text-[10px] uppercase tracking-[0.2em] text-zinc-500">
-            Discover
-          </div>
-          <ul className="space-y-px">
-            <li>
-              <NavLink
-                to="/"
-                className="group flex items-center gap-3 border-l-2 border-transparent px-3 py-2 text-sm text-zinc-400 transition-colors hover:border-zinc-700 hover:bg-zinc-900/40 hover:text-zinc-100"
-              >
-                <Briefcase className="h-4 w-4 shrink-0" aria-hidden />
-                <span>Browse jobs</span>
-              </NavLink>
-            </li>
           </ul>
         </nav>
 

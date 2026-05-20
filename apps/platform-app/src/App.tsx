@@ -13,6 +13,7 @@ const SignIn = lazy(() => import("./routes/SignIn").then((m) => ({ default: m.Si
 const SignUp = lazy(() => import("./routes/SignUp").then((m) => ({ default: m.SignUp })));
 const NotFound = lazy(() => import("./routes/NotFound").then((m) => ({ default: m.NotFound })));
 const Me = lazy(() => import("./routes/Me").then((m) => ({ default: m.Me })));
+const MeJobs = lazy(() => import("./routes/MeJobs").then((m) => ({ default: m.MeJobs })));
 const MeProfile = lazy(() => import("./routes/MeProfile").then((m) => ({ default: m.MeProfile })));
 const MeIntent = lazy(() => import("./routes/MeIntent").then((m) => ({ default: m.MeIntent })));
 const MeCredentials = lazy(() => import("./routes/MeCredentials").then((m) => ({ default: m.MeCredentials })));
@@ -101,6 +102,7 @@ export function App() {
         <Route element={<PortalLayout />}>
           {/* Candidate portal */}
           <Route path="/me" element={<Me />} />
+          <Route path="/me/jobs" element={<MeJobs />} />
           <Route path="/me/profile" element={<MeProfile />} />
           <Route path="/me/intent" element={<MeIntent />} />
           <Route path="/me/credentials" element={<MeCredentials />} />

@@ -1,6 +1,8 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useParams } from "react-router-dom";
 import { api } from "../lib/api";
+import { useAuth } from "../lib/auth";
+import { useIdentity } from "../lib/identity";
 import {
   Page,
   PageHeader,
@@ -10,6 +12,8 @@ import {
   CardBody,
   CardHeader,
   Badge,
+  Banner,
+  Button,
   SectionLabel,
   Grid,
   Inline,
@@ -41,8 +45,15 @@ type JobDetailShape = {
   };
 };
 
+type ApplicationsResponse = { applications: { job_id: string }[] };
+
 export function JobDetail() {
   const { id = "" } = useParams();
+  const { session } = useAuth();
+  const { identity } = useIdentity();
+  const qc = useQueryClient();
+  const isCandidate = Boolean(session) && identity?.profile.kind === "candidate";
+
   const q = useQuery({
     queryKey: ["job", id],
     queryFn: async (): Promise<JobDetailShape | null> => {
@@ -50,6 +61,28 @@ export function JobDetail() {
       if (res.status === 404) return null;
       if (!res.ok) throw new Error("failed");
       return (await res.json()) as unknown as JobDetailShape;
+    },
+  });
+
+  // the candidate's own applications — tells us if THIS job is already applied.
+  const applicationsQ = useQuery({
+    queryKey: ["me-jobs", "applications"],
+    enabled: isCandidate,
+    queryFn: async (): Promise<ApplicationsResponse> => {
+      const res = await api.api.v1.candidates.me.applications.$get();
+      if (!res.ok) throw new Error("failed to load applications");
+      return (await res.json()) as unknown as ApplicationsResponse;
+    },
+  });
+
+  const applyM = useMutation({
+    mutationFn: async (jobId: string) => {
+      const res = await api.api.v1.jobs[":id"].apply.$post({ param: { id: jobId }, json: {} });
+      if (!res.ok && res.status !== 409) throw new Error("apply failed");
+      return res.json();
+    },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["me-jobs", "applications"] });
     },
   });
 
@@ -80,6 +113,10 @@ export function JobDetail() {
   const job = q.data.job;
   const company = job.company;
 
+  const applied =
+    (applicationsQ.data?.applications ?? []).some((a) => a.job_id === job.id) ||
+    Boolean(applyM.data && (applyM.data as { application?: unknown }).application);
+
   return (
     <Page align="center">
       <PageHeader
@@ -102,6 +139,7 @@ export function JobDetail() {
               </span>
               <Link
                 to={`/companies/${company.slug}`}
+                data-testid="job-company-link"
                 className="data-mono mt-2 inline-block font-mono text-mono-xs uppercase text-[color:var(--color-text-accent)] hover:text-[color:var(--color-accent-primaryHover)]"
               >
                 {company.name} {"//"} {company.hq_location}
@@ -109,7 +147,26 @@ export function JobDetail() {
             </div>
           </Inline>
         }
+        actions={
+          isCandidate && !applied ? (
+            <Button
+              data-testid="job-apply-button"
+              onClick={() => applyM.mutate(job.id)}
+              disabled={applyM.isPending}
+            >
+              {applyM.isPending ? "Applying..." : "Apply to this role"}
+            </Button>
+          ) : null
+        }
       />
+
+      {isCandidate && applied ? (
+        <div data-testid="job-applied-state">
+          <Banner tone="success">
+            You have applied to this role — it is in the company's pipeline.
+          </Banner>
+        </div>
+      ) : null}
 
       <Grid cols={1} mdCols={3} gap="4">
         <Card>
