@@ -5,6 +5,7 @@
 
 import { createClient } from "@supabase/supabase-js";
 import postgres from "postgres";
+import { seedCycle3 } from "./cycle-3";
 
 const SUPABASE_URL = process.env.AE_SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL;
 const SERVICE_ROLE = process.env.AE_SUPABASE_SERVICE_ROLE_KEY;
@@ -61,10 +62,23 @@ function randDate(yearsAgo: number) {
   return new Date(ms).toISOString().slice(0, 10);
 }
 
+async function findAuthUserByEmail(email: string): Promise<{ id: string } | undefined> {
+  // Paginate fully — once 100+ seeded candidates exist, a single page-1 lookup
+  // can miss the test users and trigger a spurious createUser (email_exists 422).
+  let page = 1;
+  for (;;) {
+    const list = await admin.auth.admin.listUsers({ page, perPage: 200 });
+    if (list.error) throw list.error;
+    const found = list.data.users.find((u) => u.email === email);
+    if (found) return { id: found.id };
+    if (list.data.users.length < 200) return undefined;
+    page++;
+  }
+}
+
 async function ensureUser(email: string, password: string, name: string, kind: "candidate" | "company_member" | "admin") {
-  const list = await admin.auth.admin.listUsers({ page: 1, perPage: 200 });
-  if (list.error) throw list.error;
-  let user = list.data.users.find((u) => u.email === email);
+  const existing = await findAuthUserByEmail(email);
+  let user: { id: string } | undefined = existing;
   if (!user) {
     const created = await admin.auth.admin.createUser({
       email,
@@ -73,7 +87,7 @@ async function ensureUser(email: string, password: string, name: string, kind: "
       user_metadata: { name },
     });
     if (created.error) throw created.error;
-    user = created.data.user;
+    user = created.data.user ?? undefined;
   } else {
     // Reset password to known value so test users are always reachable
     const upd = await admin.auth.admin.updateUserById(user.id, { password, email_confirm: true });
@@ -92,7 +106,17 @@ async function main() {
   console.log("ae-hq seed starting");
 
   // ----- wipe existing rows (test data only — auth.users left alone except for resets) -----
-  await sql`truncate table public.notifications, public.unlock_requests, public.verified_credentials, public.credential_uploads, public.intent_signals, public.ae_work_history, public.jobs, public.subscriptions, public.ats_connections, public.candidates, public.company_members, public.companies restart identity cascade`;
+  // cycle-3 tables are listed explicitly: `articles` has no FK to companies so the
+  // companies cascade does not reach it; messages/pipeline_activity have no natural
+  // unique key, so truncate-and-reseed is the idempotency strategy for the new tables.
+  await sql`truncate table
+    public.pipeline_activity, public.pipeline_candidates, public.pipeline_stages,
+    public.messages, public.conversations, public.articles,
+    public.notifications, public.unlock_requests, public.verified_credentials,
+    public.credential_uploads, public.intent_signals, public.ae_work_history,
+    public.jobs, public.subscriptions, public.ats_connections,
+    public.candidates, public.company_members, public.companies
+    restart identity cascade`;
   console.log("  cleared existing tables");
 
   // ----- companies -----
@@ -207,23 +231,46 @@ async function main() {
   console.log(`  test candidate: candidate1@accountexecutive.test (user_id=${candidateId})`);
 
   // ----- 100 anonymous candidates with realistic work history -----
+  // Emails are deterministic (`candidate-N@candidates.test`) so a re-run reuses
+  // the same auth.users rows instead of churning new ones. Collected IDs feed
+  // the cycle-3 conversation/pipeline seed below.
+  const anonCandidateIds: string[] = [];
   let candidateCount = 0;
-  for (let i = 0; i < 100; i++) {
-    const firstName = rand(FIRST_NAMES);
-    const lastName = rand(LAST_NAMES);
-    const email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}.${i}@candidates.test`;
-    // Create auth user
-    const created = await admin.auth.admin.createUser({
-      email,
-      password: "testing123!",
-      email_confirm: true,
-      user_metadata: { name: `${firstName} ${lastName}` },
-    });
-    if (created.error) {
-      // skip duplicates silently
-      continue;
+  // pre-fetch existing auth users once so re-runs can recover IDs without 100 lookups
+  const existingUsers = new Map<string, string>();
+  {
+    let page = 1;
+    for (;;) {
+      const list = await admin.auth.admin.listUsers({ page, perPage: 200 });
+      if (list.error) throw list.error;
+      for (const u of list.data.users) if (u.email) existingUsers.set(u.email, u.id);
+      if (list.data.users.length < 200) break;
+      page++;
     }
-    const userId = created.data.user.id;
+  }
+  for (let i = 0; i < 100; i++) {
+    const firstName = FIRST_NAMES[i % FIRST_NAMES.length] as string;
+    const lastName = LAST_NAMES[(i * 7) % LAST_NAMES.length] as string;
+    const email = `candidate-${i}@candidates.test`;
+    // Create auth user; on duplicate, recover the existing id (idempotent re-run).
+    let userId: string;
+    const existing = existingUsers.get(email);
+    if (existing) {
+      userId = existing;
+    } else {
+      const created = await admin.auth.admin.createUser({
+        email,
+        password: "testing123!",
+        email_confirm: true,
+        user_metadata: { name: `${firstName} ${lastName}` },
+      });
+      if (created.error || !created.data.user) {
+        // could not create and not found — skip this slot
+        continue;
+      }
+      userId = created.data.user.id;
+    }
+    anonCandidateIds.push(userId);
     const segment = rand(SEGMENTS);
     const methodologyCount = randInt(1, 3);
     const methodologyPick = Array.from(new Set([...Array(methodologyCount)].map(() => rand(METHODOLOGIES))));
@@ -328,6 +375,20 @@ async function main() {
     values (${companyIds.get("stripe")!}::uuid, 'greenhouse', 'mock_encrypted', now() - interval '2 hours')
     on conflict (company_id, vendor) do nothing
   `;
+
+  // ----- cycle 3: articles, pipeline, conversations -----
+  const c3 = await seedCycle3({
+    sql,
+    stripeCompanyId: companyIds.get("stripe")!,
+    secondCompanyId: companyIds.get("snowflake")!,
+    recruiterId,
+    testCandidateId: candidateId,
+    anonCandidateIds,
+  });
+  console.log(
+    `  seeded cycle-3: articles=${c3.articles} stages=${c3.stages} conversations=${c3.conversations} ` +
+      `messages=${c3.messages} pipeline_candidates=${c3.pipelineCandidates} activity=${c3.activity}`,
+  );
 
   // ----- summary -----
   const [{ companies, jobs, candidates, profiles, unlocks }] = await sql<
