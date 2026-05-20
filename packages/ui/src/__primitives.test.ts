@@ -54,6 +54,10 @@ const expected = [
   "AppearOnMount",
   "FadeIn",
   "SlideIn",
+  // Consent & matchmaking (cycle 6)
+  "Toggle",
+  "MatchStatusBadge",
+  "AnonymousCandidateCard",
 ];
 
 for (const name of expected) {

@@ -178,6 +178,18 @@ export {
 // Markdown
 export { Markdown } from "./markdown";
 
+// Consent & matchmaking (cycle 6)
+export {
+  Toggle,
+  MatchStatusBadge,
+  AnonymousCandidateCard,
+  type ToggleProps,
+  type MatchStatusBadgeProps,
+  type MatchStatus,
+  type AnonymousCandidateCardProps,
+  type AnonymousCandidateCardWorkedAt,
+} from "./consent";
+
 // Pipeline
 export {
   KanbanBoard,

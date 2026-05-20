@@ -106,6 +106,12 @@ Every primitive is token-typed. Spacing/color/font-size props accept token names
 - `<StageHeader>` — kanban column header (name + count + accent)
 - `<CandidateTimeline>` / `<TimelineEntry>` — per-candidate activity feed
 
+#### Consent & matchmaking
+
+- `<Toggle>` — accessible on/off switch (label + description); the `auto_match` / `discoverable` settings
+- `<MatchStatusBadge>` — status pill for a `matches` row (resolved / pending_ae / pending_company / declined / expired)
+- `<AnonymousCandidateCard>` — anonymized AE card for the matchmaking discovery surface (initials, never a real name)
+
 #### Motion
 
 - `<AppearOnMount>` — opacity 0 → 1
