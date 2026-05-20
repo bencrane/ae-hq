@@ -25,6 +25,20 @@ type Sql = ReturnType<typeof postgres>;
 const STATUSES = ["applied", "in_pipeline", "rejected", "withdrawn", "hired"] as const;
 const SOURCES = ["candidate_applied", "company_sourced"] as const;
 
+// The standard pipeline-stage set every company gets. Mirrors the set cycle-3
+// seeds for Stripe — a job posting is a first-class object with its own
+// pipeline (cycle-5 mission), so EVERY hiring company needs a stage set, not
+// just the test recruiter's. `applications.stage_id` and the apply flow's
+// "company's first stage" lookup both require one.
+const DEFAULT_STAGES: { name: string; position: number; color: string; terminal: boolean }[] = [
+  { name: "New", position: 0, color: "info", terminal: false },
+  { name: "Reviewing", position: 1, color: "default", terminal: false },
+  { name: "Phone Screen", position: 2, color: "warn", terminal: false },
+  { name: "Onsite", position: 3, color: "accent", terminal: false },
+  { name: "Offer", position: 4, color: "good", terminal: false },
+  { name: "Closed", position: 5, color: "muted", terminal: true },
+];
+
 export type Cycle5SeedArgs = {
   sql: Sql;
   /** Stripe's company id — the test recruiter's company; needs >= 4 postings with applicants. */
@@ -66,7 +80,32 @@ export async function seedCycle5({
   testCandidateId,
   recruiterId,
   anonCandidateIds,
-}: Cycle5SeedArgs): Promise<{ applications: number; activity: number }> {
+}: Cycle5SeedArgs): Promise<{ applications: number; activity: number; stagesBackfilled: number }> {
+  // ----- backfill pipeline stages for every company -----
+  // cycle-3 seeds stages only for Stripe; the cycle-5 per-job model needs every
+  // hiring company to have a stage set. Give the standard DEFAULT_STAGES set to
+  // every company that has none — Stripe's existing stages are left untouched
+  // (the `where not exists` guard skips it), so the cycle-3 board and
+  // pipeline_candidates data are undisturbed. `on conflict (company_id,
+  // position) do nothing` keeps this idempotent if a partial set somehow exists.
+  const companiesWithoutStages = await sql<{ id: string }[]>`
+    select c.id from public.companies c
+    where not exists (
+      select 1 from public.pipeline_stages ps where ps.company_id = c.id
+    )
+  `;
+  let stagesBackfilled = 0;
+  for (const co of companiesWithoutStages) {
+    for (const s of DEFAULT_STAGES) {
+      await sql`
+        insert into public.pipeline_stages (company_id, name, position, color, is_terminal)
+        values (${co.id}::uuid, ${s.name}, ${s.position}, ${s.color}, ${s.terminal})
+        on conflict (company_id, position) do nothing
+      `;
+      stagesBackfilled++;
+    }
+  }
+
   // ----- load jobs + stages -----
   const jobs = await sql<JobRow[]>`select id, company_id from public.jobs`;
   const stages = await sql<StageRow[]>`
@@ -194,5 +233,5 @@ export async function seedCycle5({
     activityCount++;
   }
 
-  return { applications: applicationCount, activity: activityCount };
+  return { applications: applicationCount, activity: activityCount, stagesBackfilled };
 }

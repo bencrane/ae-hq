@@ -412,7 +412,10 @@ async function main() {
     recruiterId,
     anonCandidateIds,
   });
-  console.log(`  seeded cycle-5: applications=${c5.applications} activity=${c5.activity}`);
+  console.log(
+    `  seeded cycle-5: applications=${c5.applications} activity=${c5.activity} ` +
+      `stages_backfilled=${c5.stagesBackfilled}`,
+  );
 
   // ----- summary -----
   const [{ companies, jobs, candidates, profiles, unlocks }] = await sql<
