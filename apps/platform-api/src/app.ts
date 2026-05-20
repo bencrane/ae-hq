@@ -10,6 +10,7 @@ import { credentialsRoutes } from "./routes/credentials";
 import { companyRoutes } from "./routes/company";
 import { notificationsRoutes } from "./routes/notifications";
 import { conversationsRoutes } from "./routes/conversations";
+import { articlesRoutes } from "./routes/articles";
 import { webhooksRoutes } from "./routes/webhooks";
 
 const allowedOrigins = env.ALLOWED_ORIGINS.split(",").map((s) => s.trim()).filter(Boolean);
@@ -25,10 +26,13 @@ const authedV1 = new Hono<{ Variables: Variables }>()
   .route("/notifications", notificationsRoutes)
   .route("/conversations", conversationsRoutes);
 
-// v1 group: public routes + authed subgroup, all under /api/v1
+// v1 group: public routes + authed subgroup, all under /api/v1.
+// `articles` is public (Carrying Quota editorial is read-only public content —
+// criterion 12's verifier curls /api/v1/articles with no auth header).
 const v1 = new Hono<{ Variables: Variables }>()
   .route("/jobs", jobsRoutes)
   .route("/companies", companiesRoutes)
+  .route("/articles", articlesRoutes)
   .route("/webhooks", webhooksRoutes)
   .route("/", authedV1);
 

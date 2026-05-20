@@ -39,6 +39,13 @@ export const jobSearchQuerySchema = z.object({
   is_remote: z.coerce.boolean().optional(),
   ote_min: z.coerce.number().int().optional(),
   q: z.string().optional(),
-  limit: z.coerce.number().int().min(1).max(50).default(20),
+  // When true + an authenticated candidate, the feed is filtered by the
+  // caller's intent_signals (a plain SQL WHERE — not a ranking algorithm).
+  // Anon callers and `for_me` unset get the full set.
+  for_me: z.coerce.boolean().optional(),
+  // Default 100 so an unparametrized `GET /jobs` returns the whole seeded
+  // table — this keeps the `for_me` SQL-filtered feed a provable strict
+  // subset of the unfiltered feed (the filter narrows the same row set).
+  limit: z.coerce.number().int().min(1).max(100).default(100),
   offset: z.coerce.number().int().min(0).default(0),
 });

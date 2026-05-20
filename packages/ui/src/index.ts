@@ -144,6 +144,22 @@ export {
   type ThreadEmptyStateProps,
 } from "./messaging";
 
+// Feed
+export {
+  FeedRow,
+  ArticleCard,
+  ArticleCardCompact,
+  DataDropCard,
+  type FeedRowProps,
+  type FeedRowData,
+  type ArticleCardProps,
+  type ArticleCardCompactProps,
+  type DataDropCardProps,
+} from "./feed";
+
+// Markdown
+export { Markdown } from "./markdown";
+
 // Utils
 export {
   cx,
