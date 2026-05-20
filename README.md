@@ -7,10 +7,22 @@ AccountExecutive.com platform monorepo. Two-sided AE hiring marketplace.
 - `apps/platform-app` — Vite 6 + React 19 + Tailwind v4 SPA
 - `apps/platform-api` — Bun + Hono 4 BFF
 - `packages/shared` — zod schemas + Hono RPC type exports
+- `packages/tokens` — design tokens (`@ae-hq/tokens`); single source of truth
+- `packages/ui` — UI primitives (`@ae-hq/ui`) + Storybook
+- `packages/eslint-plugin-ae-hq` — custom ESLint rules (`no-route-geometry`)
 - `supabase/migrations` — SQL schema (RLS deny-all default; BFF uses service role)
 - `seed/` — sample data generator
 - `e2e/` — Playwright suite
 - `scripts/benchmarks/cycle-1-criteria.sh` — cycle 1 verifier
+
+## Design system
+
+See [`docs/design-system.md`](./docs/design-system.md) for the four-layer design system (tokens → primitives → shells → routes) and [`docs/design-decisions.md`](./docs/design-decisions.md) for the ADRs.
+
+```bash
+bun run storybook         # primitive catalog on :6006
+bun run storybook:build   # static build
+```
 
 ## Quickstart (dev)
 

@@ -23,13 +23,20 @@ function ContentFallback() {
   );
 }
 
-const NAV = [
+type NavItem = {
+  to: string;
+  end?: boolean;
+  label: string;
+  icon: typeof LayoutDashboard;
+};
+
+const NAV: ReadonlyArray<NavItem> = [
   { to: "/me", end: true, label: "Dashboard", icon: LayoutDashboard },
   { to: "/me/profile", label: "Profile", icon: UserCircle2 },
   { to: "/me/intent", label: "Intent", icon: Compass },
   { to: "/me/credentials", label: "Credentials", icon: BadgeCheck },
   { to: "/me/approvals", label: "Approvals", icon: Inbox },
-] as const;
+];
 
 export function CandidateLayout() {
   const { session, signOut } = useAuth();

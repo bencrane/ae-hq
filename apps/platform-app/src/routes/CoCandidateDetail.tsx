@@ -1,10 +1,19 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
 import { api } from "../lib/api";
-import { Card, CardBody, CardHeader } from "../components/ui/Card";
-import { Button } from "../components/ui/Button";
-import { SectionLabel } from "../components/ui/SectionLabel";
-import { DataBadge } from "../components/ui/DataBadge";
+import {
+  Page,
+  PageHeader,
+  PageSection,
+  PageLoading,
+  PageError,
+  Card,
+  CardBody,
+  Button,
+  Badge,
+  Stack,
+  Inline,
+} from "@ae-hq/ui";
 
 export function CoCandidateDetail() {
   const { id = "" } = useParams();
@@ -34,93 +43,125 @@ export function CoCandidateDetail() {
   });
 
   if (q.isLoading) {
-    return <div className="mx-auto max-w-4xl px-6 py-16 data-mono font-mono text-xs uppercase tracking-[0.2em] text-zinc-500">Loading...</div>;
+    return (
+      <Page>
+        <PageLoading />
+      </Page>
+    );
   }
   if (!q.data) {
-    return <div className="mx-auto max-w-4xl px-6 py-16">Candidate not found</div>;
+    return (
+      <Page>
+        <PageError title="Candidate not found" />
+      </Page>
+    );
   }
   const c = q.data.candidate;
 
   return (
-    <div className="mx-auto max-w-4xl px-6 py-12">
-      <SectionLabel index={1}>CANDIDATE_DETAIL</SectionLabel>
-      <div className="mt-4 flex items-start gap-6">
-        <div className="data-mono flex h-20 w-20 items-center justify-center rounded-xl bg-emerald-500/10 font-mono text-2xl font-semibold text-emerald-400">
-          {c.initials}
-        </div>
-        <div className="flex-1">
-          <h1 className="font-display text-3xl font-semibold tracking-tight">
-            {c.is_unlocked && c.name ? c.name : "Anonymous"}
-          </h1>
-          <div className="mt-2 text-sm text-zinc-400">{c.headline}</div>
-          <div className="mt-3 flex flex-wrap gap-2">
-            {c.segment_focus ? <DataBadge>{c.segment_focus}</DataBadge> : null}
-            {c.methodology.map((m: string) => (
-              <DataBadge key={m} tone="muted">
-                {m}
-              </DataBadge>
-            ))}
-            {c.is_unlocked ? <DataBadge tone="good">UNLOCKED</DataBadge> : null}
-            {c.unlock_status === "pending" ? <DataBadge tone="warn">PENDING</DataBadge> : null}
-          </div>
-        </div>
-        {!c.is_unlocked && c.unlock_status !== "pending" ? (
-          <Button onClick={() => unlockM.mutate()} disabled={unlockM.isPending} data-testid="unlock-btn">
-            {unlockM.isPending ? "Charging..." : "Unlock"}
-          </Button>
-        ) : null}
-      </div>
+    <Page>
+      <PageHeader
+        section="01"
+        eyebrow="01 // CANDIDATE_DETAIL"
+        title={
+          <Inline gap="6" align="start">
+            <div className="data-mono flex h-20 w-20 items-center justify-center rounded-xl bg-[color:var(--color-accent-soft)] font-mono text-display-sm font-semibold text-[color:var(--color-text-accent)]">
+              {c.initials}
+            </div>
+            <div className="flex-1">
+              <span className="font-display text-display-xl font-semibold tracking-tight">
+                {c.is_unlocked && c.name ? c.name : "Anonymous"}
+              </span>
+              <div className="mt-2 text-body-sm text-[color:var(--color-text-muted)]">
+                {c.headline}
+              </div>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {c.segment_focus ? <Badge>{c.segment_focus}</Badge> : null}
+                {c.methodology.map((m: string) => (
+                  <Badge key={m} tone="muted">
+                    {m}
+                  </Badge>
+                ))}
+                {c.is_unlocked ? <Badge tone="good">UNLOCKED</Badge> : null}
+                {c.unlock_status === "pending" ? <Badge tone="warn">PENDING</Badge> : null}
+              </div>
+            </div>
+          </Inline>
+        }
+        actions={
+          !c.is_unlocked && c.unlock_status !== "pending" ? (
+            <Button
+              onClick={() => unlockM.mutate()}
+              disabled={unlockM.isPending}
+              data-testid="unlock-btn"
+            >
+              {unlockM.isPending ? "Charging..." : "Unlock"}
+            </Button>
+          ) : null
+        }
+      />
 
       {unlockM.isError ? (
-        <div className="data-mono mt-4 font-mono text-xs uppercase tracking-wider text-amber-400">
-          ERR // {(unlockM.error as Error).message}
+        <div className="data-mono font-mono text-mono-xs uppercase text-[color:var(--color-state-warn)]">
+          ERR {"//"} {(unlockM.error as Error).message}
         </div>
       ) : null}
       {unlockM.isSuccess ? (
-        <DataBadge tone="good" className="mt-4">
+        <Badge tone="good">
           {">"} CHARGED {unlockM.data?.mock_stripe_charge_id?.slice(0, 16)}…
-        </DataBadge>
+        </Badge>
       ) : null}
 
-      <section className="mt-12">
-        <SectionLabel index={2}>WORK_HISTORY</SectionLabel>
-        <div className="mt-4 grid gap-3">
+      <PageSection section="02" title="Work history">
+        <Stack gap="3">
           {(c.work_history as Array<Record<string, unknown>>).map((h) => {
             const co = h.companies as { name: string; logo_url: string | null } | null;
             return (
               <Card key={h.id as string}>
-                <CardBody className="flex items-center gap-4">
-                  {co?.logo_url ? <img src={co.logo_url} alt="" className="h-10 w-10 rounded" /> : <div className="h-10 w-10 rounded bg-zinc-800" />}
-                  <div className="flex-1">
-                    <div className="font-medium">{h.title as string} {"//"} {co?.name ?? "Unknown"}</div>
-                    <div className="data-mono font-mono text-xs uppercase tracking-wider text-zinc-500">
-                      {h.start_date as string} → {(h.end_date as string | null) ?? "PRESENT"}
+                <CardBody>
+                  <div className="flex items-center gap-4">
+                    {co?.logo_url ? (
+                      <img src={co.logo_url} alt="" className="h-10 w-10 rounded" />
+                    ) : (
+                      <div className="h-10 w-10 rounded bg-[color:var(--color-surface-raised)]" />
+                    )}
+                    <div className="flex-1">
+                      <div className="font-medium">
+                        {h.title as string} {"//"} {co?.name ?? "Unknown"}
+                      </div>
+                      <div className="data-mono font-mono text-mono-xs uppercase text-[color:var(--color-text-muted)]">
+                        {h.start_date as string} →{" "}
+                        {(h.end_date as string | null) ?? "PRESENT"}
+                      </div>
                     </div>
+                    {h.segment ? <Badge>{h.segment as string}</Badge> : null}
                   </div>
-                  {h.segment ? <DataBadge>{h.segment as string}</DataBadge> : null}
                 </CardBody>
               </Card>
             );
           })}
-        </div>
-      </section>
+        </Stack>
+      </PageSection>
 
-      <section className="mt-12">
-        <SectionLabel index={3}>CREDENTIALS</SectionLabel>
-        <div className="mt-4 grid gap-3">
+      <PageSection section="03" title="Credentials">
+        <Stack gap="3">
           {(c.credentials as Array<Record<string, unknown>>).map((cr, idx) => (
-            <Card key={idx}>
+            <Card key={`${cr.kind as string}-${idx}`}>
               <CardBody>
-                <div className="data-mono font-mono text-sm uppercase tracking-wider text-emerald-400">
+                <div className="data-mono font-mono text-body-sm uppercase text-[color:var(--color-text-accent)]">
                   {cr.kind as string}
                 </div>
-                <pre className="data-mono mt-2 font-mono text-xs text-zinc-300">{JSON.stringify(cr.value_json, null, 2)}</pre>
-                <DataBadge tone="good" className="mt-3">{(cr.verification_tier as string).toUpperCase()}</DataBadge>
+                <pre className="data-mono mt-2 font-mono text-mono-xs text-[color:var(--color-text-default)]">
+                  {JSON.stringify(cr.value_json, null, 2)}
+                </pre>
+                <div className="mt-3">
+                  <Badge tone="good">{(cr.verification_tier as string).toUpperCase()}</Badge>
+                </div>
               </CardBody>
             </Card>
           ))}
-        </div>
-      </section>
-    </div>
+        </Stack>
+      </PageSection>
+    </Page>
   );
 }

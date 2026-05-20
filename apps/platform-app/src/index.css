@@ -1,10 +1,14 @@
 @import "tailwindcss";
+@import "@ae-hq/tokens/css";
 
-/* Design tokens — locked by directive */
+/*
+ * Cycle-1 left this @theme block inline. The tokens package now owns it;
+ * the `@import "@ae-hq/tokens/css"` above carries the full @theme. Anything
+ * that should be a token belongs in `packages/tokens/src/tokens.ts`, not here.
+ */
 @theme {
-  --color-emerald-500: #10b981;
-  --color-emerald-400: #34d399;
-  --color-zinc-950: #09090b;
+  /* Fonts kept inline — they reference fontsource which the tokens package
+   * doesn't own. Everything else lives in the tokens import. */
   --font-sans:
     "Geist Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
   --font-mono:
@@ -15,8 +19,8 @@
 
 html,
 body {
-  background-color: rgb(9, 9, 11); /* zinc-950 */
-  color: rgb(244, 244, 245); /* zinc-100 */
+  background-color: var(--color-surface-base);
+  color: var(--color-text-strong);
   font-family: var(--font-sans);
 }
 

@@ -1,9 +1,14 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "../lib/api";
-import { Card, CardBody, CardHeader } from "../components/ui/Card";
-import { Button } from "../components/ui/Button";
-import { SectionLabel } from "../components/ui/SectionLabel";
-import { DataBadge } from "../components/ui/DataBadge";
+import {
+  Page,
+  PageHeader,
+  Card,
+  CardBody,
+  Button,
+  Badge,
+  Stack,
+} from "@ae-hq/ui";
 
 type Vendor = "greenhouse" | "lever" | "ashby" | "rippling" | "bamboohr";
 
@@ -39,41 +44,50 @@ export function CoAts() {
   });
 
   return (
-    <div className="mx-auto max-w-4xl px-6 py-12">
-      <SectionLabel index={1}>ATS_INTEGRATIONS</SectionLabel>
-      <h1 className="font-display mt-3 text-3xl font-semibold tracking-tight">Connect your stack</h1>
-      <div className="mt-8 grid gap-3">
+    <Page>
+      <PageHeader section="01" eyebrow="01 // ATS_INTEGRATIONS" title="Connect your stack" />
+      <Stack gap="3">
         {(q.data?.connections ?? []).map((c) => (
           <Card key={c.vendor}>
-            <CardBody className="flex items-center gap-4">
-              <div className="flex-1">
-                <div className="font-display text-lg capitalize">{c.vendor}</div>
-                {c.last_synced_at ? (
-                  <div className="data-mono mt-1 font-mono text-xs uppercase tracking-wider text-zinc-500">
-                    LAST SYNC {new Date(c.last_synced_at).toISOString().slice(0, 16).replace("T", " ")}
-                  </div>
+            <CardBody>
+              <div className="flex items-center gap-4">
+                <div className="flex-1">
+                  <div className="font-display text-body-lg capitalize">{c.vendor}</div>
+                  {c.last_synced_at ? (
+                    <div className="data-mono mt-1 font-mono text-mono-xs uppercase text-[color:var(--color-text-muted)]">
+                      LAST SYNC{" "}
+                      {new Date(c.last_synced_at)
+                        .toISOString()
+                        .slice(0, 16)
+                        .replace("T", " ")}
+                    </div>
+                  ) : (
+                    <div className="data-mono mt-1 font-mono text-mono-xs uppercase text-[color:var(--color-text-muted)]">
+                      NOT CONNECTED
+                    </div>
+                  )}
+                </div>
+                {c.is_connected ? (
+                  <>
+                    <Badge tone="good">CONNECTED</Badge>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => disconnectM.mutate(c.vendor as Vendor)}
+                    >
+                      Disconnect
+                    </Button>
+                  </>
                 ) : (
-                  <div className="data-mono mt-1 font-mono text-xs uppercase tracking-wider text-zinc-500">
-                    NOT CONNECTED
-                  </div>
+                  <Button size="sm" onClick={() => connectM.mutate(c.vendor as Vendor)}>
+                    Connect
+                  </Button>
                 )}
               </div>
-              {c.is_connected ? (
-                <>
-                  <DataBadge tone="good">CONNECTED</DataBadge>
-                  <Button variant="secondary" size="sm" onClick={() => disconnectM.mutate(c.vendor as Vendor)}>
-                    Disconnect
-                  </Button>
-                </>
-              ) : (
-                <Button size="sm" onClick={() => connectM.mutate(c.vendor as Vendor)}>
-                  Connect
-                </Button>
-              )}
             </CardBody>
           </Card>
         ))}
-      </div>
-    </div>
+      </Stack>
+    </Page>
   );
 }

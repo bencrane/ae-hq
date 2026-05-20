@@ -1,9 +1,19 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link, useParams } from "react-router-dom";
 import { api } from "../lib/api";
-import { Card, CardBody, CardHeader } from "../components/ui/Card";
-import { SectionLabel } from "../components/ui/SectionLabel";
-import { DataBadge } from "../components/ui/DataBadge";
+import {
+  Page,
+  PageHeader,
+  PageSection,
+  PageLoading,
+  PageError,
+  Card,
+  CardBody,
+  CardHeader,
+  Badge,
+  Grid,
+  Inline,
+} from "@ae-hq/ui";
 
 export function CompanyPublic() {
   const { slug = "" } = useParams();
@@ -18,64 +28,99 @@ export function CompanyPublic() {
   });
 
   if (q.isLoading) {
-    return <div className="mx-auto max-w-5xl px-6 py-16 data-mono font-mono text-xs uppercase tracking-[0.2em] text-zinc-500">Loading...</div>;
+    return (
+      <Page align="center">
+        <PageLoading />
+      </Page>
+    );
   }
   if (!q.data) {
     return (
-      <div className="mx-auto max-w-5xl px-6 py-16">
-        <h1 className="text-3xl font-semibold">Company not found</h1>
-      </div>
+      <Page align="center">
+        <PageError title="Company not found" />
+      </Page>
     );
   }
-  const { company, jobs } = q.data;
+  type CompanyRecord = {
+    id: string;
+    slug: string;
+    name: string;
+    logo_url: string | null;
+    hq_location: string | null;
+    stage: string | null;
+    size_range: string | null;
+    description: string | null;
+  };
+  type JobRecord = {
+    id: string;
+    title: string;
+    segment: string;
+    location: string;
+    ote_min: number;
+    ote_max: number;
+  };
+  const data = q.data as { company: CompanyRecord; jobs: JobRecord[] };
 
   return (
-    <div className="mx-auto max-w-5xl px-6 py-16">
-      <div className="flex items-start gap-6">
-        {company.logo_url ? (
-          <img src={company.logo_url} alt="" className="h-20 w-20 rounded-xl border border-zinc-800" />
-        ) : (
-          <div className="h-20 w-20 rounded-xl bg-zinc-800" />
-        )}
-        <div>
-          <SectionLabel index={1}>COMPANY</SectionLabel>
-          <h1 className="font-display mt-2 text-5xl font-semibold tracking-tight">{company.name}</h1>
-          <div className="data-mono mt-2 font-mono text-xs uppercase tracking-wider text-zinc-500">
-            {company.hq_location} {"//"} {company.stage} {"//"} {company.size_range}
-          </div>
-        </div>
-      </div>
-      {company.description ? (
-        <p className="mt-8 max-w-3xl text-lg text-zinc-400">{company.description}</p>
-      ) : null}
-      <div className="mt-12">
-        <SectionLabel index={2}>OPEN JOBS</SectionLabel>
-        <div className="mt-4 grid gap-4 md:grid-cols-2">
-          {(jobs as Array<Record<string, unknown>>).map((j) => (
-            <Link key={j.id as string} to={`/jobs/${j.id}`}>
-              <Card className="h-full transition-colors hover:border-zinc-700">
-                <CardHeader>
-                  <div className="font-display text-lg">{j.title as string}</div>
-                  <div className="data-mono mt-1 font-mono text-xs uppercase tracking-wider text-zinc-500">
-                    {j.location as string}
-                  </div>
-                </CardHeader>
-                <CardBody className="flex flex-wrap gap-2">
-                  <DataBadge tone="good">
-                    ${Math.round((j.ote_min as number) / 1000)}K–${Math.round((j.ote_max as number) / 1000)}K OTE
-                  </DataBadge>
-                  <DataBadge>{j.segment as string}</DataBadge>
-                </CardBody>
-              </Card>
-            </Link>
-          ))}
-          {(jobs as unknown[]).length === 0 ? (
-            <div className="data-mono font-mono text-xs uppercase tracking-[0.2em] text-zinc-500">
-              No open roles right now.
+    <Page align="center">
+      <PageHeader
+        section="01"
+        eyebrow="01 // COMPANY"
+        title={
+          <Inline gap="6" align="start">
+            {data.company.logo_url ? (
+              <img
+                src={data.company.logo_url}
+                alt=""
+                className="h-20 w-20 rounded-xl border border-[color:var(--color-border-subtle)]"
+              />
+            ) : (
+              <div className="h-20 w-20 rounded-xl border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-raised)]" />
+            )}
+            <div>
+              <span className="font-display text-display-xl font-semibold tracking-tight">
+                {data.company.name}
+              </span>
+              <div className="data-mono mt-2 font-mono text-mono-xs uppercase text-[color:var(--color-text-muted)]">
+                {data.company.hq_location} {"//"} {data.company.stage} {"//"}{" "}
+                {data.company.size_range}
+              </div>
             </div>
-          ) : null}
-        </div>
-      </div>
-    </div>
+          </Inline>
+        }
+        description={data.company.description ?? undefined}
+      />
+
+      <PageSection section="02" title="Open jobs">
+        {data.jobs.length === 0 ? (
+          <div className="data-mono font-mono text-mono-xs uppercase text-[color:var(--color-text-muted)]">
+            No open roles right now.
+          </div>
+        ) : (
+          <Grid cols={1} mdCols={2} gap="4">
+            {data.jobs.map((j) => (
+              <Link key={j.id} to={`/jobs/${j.id}`}>
+                <Card interactive className="h-full">
+                  <CardHeader>
+                    <div className="font-display text-body-lg">{j.title}</div>
+                    <div className="data-mono mt-1 font-mono text-mono-xs uppercase text-[color:var(--color-text-muted)]">
+                      {j.location}
+                    </div>
+                  </CardHeader>
+                  <CardBody>
+                    <Inline gap="2" wrap>
+                      <Badge tone="good">
+                        ${Math.round(j.ote_min / 1000)}K–${Math.round(j.ote_max / 1000)}K OTE
+                      </Badge>
+                      <Badge>{j.segment}</Badge>
+                    </Inline>
+                  </CardBody>
+                </Card>
+              </Link>
+            ))}
+          </Grid>
+        )}
+      </PageSection>
+    </Page>
   );
 }

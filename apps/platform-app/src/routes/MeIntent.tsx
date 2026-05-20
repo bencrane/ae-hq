@@ -1,10 +1,19 @@
 import { type FormEvent, useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "../lib/api";
-import { Card, CardBody, CardHeader } from "../components/ui/Card";
-import { Button } from "../components/ui/Button";
-import { SectionLabel } from "../components/ui/SectionLabel";
-import { DataBadge } from "../components/ui/DataBadge";
+import {
+  Page,
+  PageHeader,
+  PageSection,
+  Card,
+  CardBody,
+  Button,
+  Field,
+  Input,
+  Stack,
+  Inline,
+  Badge,
+} from "@ae-hq/ui";
 
 const SEGMENTS = ["SMB", "MidMarket", "Enterprise", "StrategicEnterprise"] as const;
 const STAGES = ["Seed", "SeriesA", "SeriesB", "SeriesC", "SeriesD", "Public"] as const;
@@ -35,8 +44,16 @@ export function MeIntent() {
     mutationFn: async () => {
       const res = await api.api.v1.candidates.me.intent.$put({
         json: {
-          target_segments: segments as ("SMB" | "MidMarket" | "Enterprise" | "StrategicEnterprise")[],
-          target_stages: stages as ("Seed" | "SeriesA" | "SeriesB" | "SeriesC" | "SeriesD" | "Public" | "Bootstrapped")[],
+          target_segments: segments as (typeof SEGMENTS)[number][],
+          target_stages: stages as (
+            | "Seed"
+            | "SeriesA"
+            | "SeriesB"
+            | "SeriesC"
+            | "SeriesD"
+            | "Public"
+            | "Bootstrapped"
+          )[],
           comp_ote_min: otemin ?? undefined,
         },
       });
@@ -56,66 +73,65 @@ export function MeIntent() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl px-6 py-12">
-      <SectionLabel index={1}>INTENT_SIGNALS</SectionLabel>
-      <h1 className="font-display mt-3 text-3xl font-semibold tracking-tight">What you want</h1>
-      <Card className="mt-8">
+    <Page variant="narrow">
+      <PageHeader section="01" eyebrow="01 // INTENT_SIGNALS" title="What you want" />
+      <Card>
         <CardBody>
-          <form onSubmit={onSubmit} className="flex flex-col gap-6">
-            <div>
-              <SectionLabel index={2}>SEGMENTS</SectionLabel>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {SEGMENTS.map((s) => (
-                  <button
-                    type="button"
-                    key={s}
-                    onClick={() => toggle(segments, setSegments, s)}
-                    className={`data-mono rounded-none border px-3 py-1.5 font-mono text-xs uppercase tracking-wider ${
-                      segments.includes(s)
-                        ? "border-emerald-500 bg-emerald-500/10 text-emerald-300"
-                        : "border-zinc-800 text-zinc-400 hover:border-zinc-700"
-                    }`}
-                  >
-                    {s}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div>
-              <SectionLabel index={3}>STAGES</SectionLabel>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {STAGES.map((s) => (
-                  <button
-                    type="button"
-                    key={s}
-                    onClick={() => toggle(stages, setStages, s)}
-                    className={`data-mono rounded-none border px-3 py-1.5 font-mono text-xs uppercase tracking-wider ${
-                      stages.includes(s)
-                        ? "border-emerald-500 bg-emerald-500/10 text-emerald-300"
-                        : "border-zinc-800 text-zinc-400 hover:border-zinc-700"
-                    }`}
-                  >
-                    {s}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <label className="flex flex-col gap-1">
-              <SectionLabel index={4}>OTE_MIN (USD)</SectionLabel>
-              <input
-                type="number"
-                value={otemin ?? ""}
-                onChange={(e) => setOtemin(e.target.value ? Number(e.target.value) : null)}
-                className="data-mono mt-2 w-48 rounded-none border border-zinc-800 bg-zinc-950 px-3 py-2 font-mono text-sm focus:border-emerald-500 focus:outline-none"
-              />
-            </label>
-            <Button type="submit" data-testid="save-intent" disabled={saveM.isPending}>
-              {saveM.isPending ? "Saving..." : "Save intent"}
-            </Button>
-            {saveM.isSuccess ? <DataBadge tone="good">SAVED</DataBadge> : null}
+          <form onSubmit={onSubmit}>
+            <Stack gap="6">
+              <PageSection section="02" title="Segments">
+                <Inline gap="2" wrap>
+                  {SEGMENTS.map((s) => (
+                    <button
+                      type="button"
+                      key={s}
+                      onClick={() => toggle(segments, setSegments, s)}
+                      className={`data-mono rounded-none border px-3 py-1.5 font-mono text-mono-xs uppercase ${
+                        segments.includes(s)
+                          ? "border-[color:var(--color-border-accent)] bg-[color:var(--color-accent-soft)] text-[color:var(--color-text-accent)]"
+                          : "border-[color:var(--color-border-subtle)] text-[color:var(--color-text-muted)] hover:border-[color:var(--color-border-default)]"
+                      }`}
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </Inline>
+              </PageSection>
+              <PageSection section="03" title="Stages">
+                <Inline gap="2" wrap>
+                  {STAGES.map((s) => (
+                    <button
+                      type="button"
+                      key={s}
+                      onClick={() => toggle(stages, setStages, s)}
+                      className={`data-mono rounded-none border px-3 py-1.5 font-mono text-mono-xs uppercase ${
+                        stages.includes(s)
+                          ? "border-[color:var(--color-border-accent)] bg-[color:var(--color-accent-soft)] text-[color:var(--color-text-accent)]"
+                          : "border-[color:var(--color-border-subtle)] text-[color:var(--color-text-muted)] hover:border-[color:var(--color-border-default)]"
+                      }`}
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </Inline>
+              </PageSection>
+              <Field label="OTE_MIN (USD)" htmlFor="intent-otemin">
+                <Input
+                  id="intent-otemin"
+                  type="number"
+                  value={otemin ?? ""}
+                  onChange={(e) => setOtemin(e.target.value ? Number(e.target.value) : null)}
+                  className="w-48"
+                />
+              </Field>
+              <Button type="submit" data-testid="save-intent" disabled={saveM.isPending}>
+                {saveM.isPending ? "Saving..." : "Save intent"}
+              </Button>
+              {saveM.isSuccess ? <Badge tone="good">SAVED</Badge> : null}
+            </Stack>
           </form>
         </CardBody>
       </Card>
-    </div>
+    </Page>
   );
 }

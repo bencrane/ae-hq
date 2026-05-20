@@ -22,13 +22,20 @@ function ContentFallback() {
   );
 }
 
-const NAV = [
+type NavItem = {
+  to: string;
+  end?: boolean;
+  label: string;
+  icon: typeof LayoutDashboard;
+};
+
+const NAV: ReadonlyArray<NavItem> = [
   { to: "/co", end: true, label: "Dashboard", icon: LayoutDashboard },
   { to: "/co/candidates", label: "Candidates", icon: Users },
   { to: "/co/company", label: "Company page", icon: Building2 },
   { to: "/co/ats", label: "ATS sync", icon: Cable },
   { to: "/co/billing", label: "Billing", icon: CreditCard },
-] as const;
+];
 
 export function CompanyLayout() {
   const { session, signOut } = useAuth();

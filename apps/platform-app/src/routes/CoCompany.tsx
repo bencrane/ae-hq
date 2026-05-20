@@ -1,9 +1,17 @@
 import { type FormEvent, useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "../lib/api";
-import { Card, CardBody, CardHeader } from "../components/ui/Card";
-import { Button } from "../components/ui/Button";
-import { SectionLabel } from "../components/ui/SectionLabel";
+import {
+  Page,
+  PageHeader,
+  Card,
+  CardBody,
+  Button,
+  Field,
+  Input,
+  Textarea,
+  Stack,
+} from "@ae-hq/ui";
 
 export function CoCompany() {
   const qc = useQueryClient();
@@ -40,33 +48,30 @@ export function CoCompany() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl px-6 py-12">
-      <SectionLabel index={1}>COMPANY_PROFILE</SectionLabel>
-      <h1 className="font-display mt-3 text-3xl font-semibold tracking-tight">Edit company</h1>
-      <Card className="mt-8">
+    <Page variant="narrow">
+      <PageHeader section="01" eyebrow="01 // COMPANY_PROFILE" title="Edit company" />
+      <Card>
         <CardBody>
-          <form onSubmit={onSubmit} className="flex flex-col gap-4">
-            <label className="flex flex-col gap-1">
-              <span className="data-mono font-mono text-xs uppercase tracking-wider text-zinc-400">Name</span>
-              <input
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="rounded-none border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none"
-              />
-            </label>
-            <label className="flex flex-col gap-1">
-              <span className="data-mono font-mono text-xs uppercase tracking-wider text-zinc-400">Description</span>
-              <textarea
-                rows={4}
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                className="rounded-none border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none"
-              />
-            </label>
-            <Button type="submit" disabled={m.isPending}>{m.isPending ? "Saving..." : "Save"}</Button>
+          <form onSubmit={onSubmit}>
+            <Stack gap="4">
+              <Field label="Name" htmlFor="co-name">
+                <Input id="co-name" value={name} onChange={(e) => setName(e.target.value)} />
+              </Field>
+              <Field label="Description" htmlFor="co-description">
+                <Textarea
+                  id="co-description"
+                  rows={4}
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                />
+              </Field>
+              <Button type="submit" disabled={m.isPending}>
+                {m.isPending ? "Saving..." : "Save"}
+              </Button>
+            </Stack>
           </form>
         </CardBody>
       </Card>
-    </div>
+    </Page>
   );
 }

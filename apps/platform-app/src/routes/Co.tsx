@@ -1,9 +1,18 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { api } from "../lib/api";
-import { Card, CardBody, CardHeader } from "../components/ui/Card";
-import { SectionLabel } from "../components/ui/SectionLabel";
-import { DataBadge } from "../components/ui/DataBadge";
+import {
+  Page,
+  PageHeader,
+  Card,
+  CardBody,
+  CardHeader,
+  Badge,
+  Stat,
+  Grid,
+  Stack,
+  SectionLabel,
+} from "@ae-hq/ui";
 
 export function Co() {
   const coQ = useQuery({
@@ -24,26 +33,29 @@ export function Co() {
   });
 
   return (
-    <div className="mx-auto max-w-6xl px-6 py-12">
-      <SectionLabel index={1}>RECRUITER_DASHBOARD</SectionLabel>
-      <h1 className="font-display mt-3 text-4xl font-semibold tracking-tight">
-        {coQ.data?.company?.name ?? "Your company"}
-      </h1>
+    <Page>
+      <PageHeader
+        section="01"
+        eyebrow="01 // RECRUITER_DASHBOARD"
+        title={coQ.data?.company?.name ?? "Your company"}
+      />
 
-      <div className="mt-10 grid gap-6 md:grid-cols-3">
+      <Grid cols={1} mdCols={3} gap="6">
         <Card>
           <CardHeader>
             <SectionLabel index={2}>SUBSCRIPTION</SectionLabel>
           </CardHeader>
           <CardBody>
-            <div className="data-mono font-mono text-2xl font-semibold">
-              {billingQ.data?.subscription?.tier?.toUpperCase() ?? "—"}
-            </div>
-            <div className="data-mono mt-1 font-mono text-xs uppercase tracking-wider text-zinc-500">
-              {billingQ.data?.subscription?.unlocks_used_current_period ?? 0} /{" "}
-              {billingQ.data?.subscription?.unlocks_per_month ?? 0} UNLOCKS
-            </div>
-            <Link to="/co/billing" className="data-mono mt-4 inline-block font-mono text-xs uppercase tracking-wider text-emerald-400 hover:text-emerald-300">
+            <Stat
+              label={`${billingQ.data?.subscription?.unlocks_used_current_period ?? 0} / ${
+                billingQ.data?.subscription?.unlocks_per_month ?? 0
+              } UNLOCKS`}
+              value={billingQ.data?.subscription?.tier?.toUpperCase() ?? "—"}
+            />
+            <Link
+              to="/co/billing"
+              className="data-mono mt-4 inline-block font-mono text-mono-xs uppercase text-[color:var(--color-text-accent)] hover:text-[color:var(--color-accent-primaryHover)]"
+            >
               Manage →
             </Link>
           </CardBody>
@@ -53,7 +65,10 @@ export function Co() {
             <SectionLabel index={3}>SEARCH</SectionLabel>
           </CardHeader>
           <CardBody>
-            <Link to="/co/candidates" className="data-mono inline-block font-mono text-xs uppercase tracking-wider text-emerald-400 hover:text-emerald-300">
+            <Link
+              to="/co/candidates"
+              className="data-mono inline-block font-mono text-mono-xs uppercase text-[color:var(--color-text-accent)] hover:text-[color:var(--color-accent-primaryHover)]"
+            >
               Browse candidates →
             </Link>
           </CardBody>
@@ -63,21 +78,27 @@ export function Co() {
             <SectionLabel index={4}>INTEGRATIONS</SectionLabel>
           </CardHeader>
           <CardBody>
-            <Link to="/co/ats" className="data-mono inline-block font-mono text-xs uppercase tracking-wider text-emerald-400 hover:text-emerald-300">
-              Connect ATS →
-            </Link>
-            <div className="mt-2">
-              <Link to="/co/company" className="data-mono inline-block font-mono text-xs uppercase tracking-wider text-zinc-400 hover:text-emerald-400">
+            <Stack gap="2">
+              <Link
+                to="/co/ats"
+                className="data-mono inline-block font-mono text-mono-xs uppercase text-[color:var(--color-text-accent)] hover:text-[color:var(--color-accent-primaryHover)]"
+              >
+                Connect ATS →
+              </Link>
+              <Link
+                to="/co/company"
+                className="data-mono inline-block font-mono text-mono-xs uppercase text-[color:var(--color-text-muted)] hover:text-[color:var(--color-text-accent)]"
+              >
                 Company details →
               </Link>
-            </div>
+            </Stack>
           </CardBody>
         </Card>
-      </div>
+      </Grid>
 
       <div className="mt-12">
-        <DataBadge tone="good">{">"} ACTIVE SUBSCRIPTION</DataBadge>
+        <Badge tone="good">{">"} ACTIVE SUBSCRIPTION</Badge>
       </div>
-    </div>
+    </Page>
   );
 }

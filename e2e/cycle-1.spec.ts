@@ -135,7 +135,8 @@ test.describe("cycle 1 acceptance", () => {
     await page.waitForURL(/\/co\/candidates\//, { timeout: 10_000 });
     // candidate detail page renders (anonymized initials are present, work history shown)
     await expect(page.locator("h1")).toBeVisible({ timeout: 10_000 });
-    await expect(page.getByText(/WORK_HISTORY/i)).toBeVisible({ timeout: 5_000 });
+    // cycle-2: section eyebrow renders "02 // WORK HISTORY" via <PageSection>.
+    await expect(page.getByText(/WORK[\s_]HISTORY/i).first()).toBeVisible({ timeout: 5_000 });
     // unlock flow — happy path
     const unlockBtn = page.locator('[data-testid="unlock-btn"]');
     if (await unlockBtn.isVisible({ timeout: 2_000 }).catch(() => false)) {

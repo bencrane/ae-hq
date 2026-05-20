@@ -1,9 +1,19 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { api } from "../lib/api";
-import { Card, CardBody, CardHeader } from "../components/ui/Card";
-import { SectionLabel } from "../components/ui/SectionLabel";
-import { DataBadge } from "../components/ui/DataBadge";
+import {
+  Page,
+  PageHeader,
+  PageSection,
+  Card,
+  CardBody,
+  CardHeader,
+  Badge,
+  Stat,
+  Grid,
+  Stack,
+  SectionLabel,
+} from "@ae-hq/ui";
 
 type MeShape = { profile: { name: string; email: string; kind: string } | null };
 type HistShape = {
@@ -46,20 +56,24 @@ export function Me() {
   });
 
   return (
-    <div className="mx-auto max-w-6xl px-6 py-12">
-      <SectionLabel index={1}>CANDIDATE_DASHBOARD</SectionLabel>
-      <h1 className="font-display mt-3 text-4xl font-semibold tracking-tight">
-        {meQ.data?.profile?.name ?? "Candidate"}
-      </h1>
+    <Page>
+      <PageHeader
+        section="01"
+        eyebrow="01 // CANDIDATE_DASHBOARD"
+        title={meQ.data?.profile?.name ?? "Candidate"}
+      />
 
-      <div className="mt-10 grid gap-6 md:grid-cols-3">
+      <Grid cols={1} mdCols={3} gap="6">
         <Card>
           <CardHeader>
             <SectionLabel index={2}>PROFILE</SectionLabel>
           </CardHeader>
           <CardBody>
-            <div className="data-mono font-mono text-sm">{meQ.data?.profile?.email}</div>
-            <Link to="/me/profile" className="data-mono mt-4 inline-block font-mono text-xs uppercase tracking-wider text-emerald-400 hover:text-emerald-300">
+            <div className="data-mono font-mono text-body-sm">{meQ.data?.profile?.email}</div>
+            <Link
+              to="/me/profile"
+              className="data-mono mt-4 inline-block font-mono text-mono-xs uppercase text-[color:var(--color-text-accent)] hover:text-[color:var(--color-accent-primaryHover)]"
+            >
               Edit profile →
             </Link>
           </CardBody>
@@ -69,7 +83,10 @@ export function Me() {
             <SectionLabel index={3}>INTENT</SectionLabel>
           </CardHeader>
           <CardBody>
-            <Link to="/me/intent" className="data-mono inline-block font-mono text-xs uppercase tracking-wider text-emerald-400 hover:text-emerald-300">
+            <Link
+              to="/me/intent"
+              className="data-mono inline-block font-mono text-mono-xs uppercase text-[color:var(--color-text-accent)] hover:text-[color:var(--color-accent-primaryHover)]"
+            >
               Set intent →
             </Link>
           </CardBody>
@@ -79,49 +96,58 @@ export function Me() {
             <SectionLabel index={4}>CREDENTIALS</SectionLabel>
           </CardHeader>
           <CardBody>
-            <div className="data-mono font-mono text-2xl font-semibold">
-              {credQ.data?.credentials?.length ?? 0}
-            </div>
-            <div className="data-mono mt-1 font-mono text-xs uppercase tracking-wider text-zinc-500">VERIFIED</div>
-            <Link to="/me/credentials" className="data-mono mt-4 inline-block font-mono text-xs uppercase tracking-wider text-emerald-400 hover:text-emerald-300">
+            <Stat
+              label="VERIFIED"
+              value={credQ.data?.credentials?.length ?? 0}
+            />
+            <Link
+              to="/me/credentials"
+              className="data-mono mt-4 inline-block font-mono text-mono-xs uppercase text-[color:var(--color-text-accent)] hover:text-[color:var(--color-accent-primaryHover)]"
+            >
               Manage →
             </Link>
           </CardBody>
         </Card>
-      </div>
+      </Grid>
 
-      <section className="mt-12">
-        <SectionLabel index={5}>WORK_HISTORY</SectionLabel>
-        <h2 className="font-display mt-2 text-2xl font-semibold tracking-tight">Track record</h2>
-        <div className="mt-4 grid gap-3">
+      <PageSection section="05" title="Track record">
+        <Stack gap="3">
           {(histQ.data?.work_history ?? []).map((h) => (
             <Card key={h.id}>
-              <CardBody className="flex items-center gap-4">
-                {h.company.logo_url ? (
-                  <img src={h.company.logo_url} alt="" className="h-10 w-10 rounded" />
-                ) : (
-                  <div className="h-10 w-10 rounded bg-zinc-800" />
-                )}
-                <div className="flex-1">
-                  <div className="font-medium">
-                    {h.title} {"//"} {h.company.name}
+              <CardBody>
+                <div className="flex items-center gap-4">
+                  {h.company.logo_url ? (
+                    <img src={h.company.logo_url} alt="" className="h-10 w-10 rounded" />
+                  ) : (
+                    <div className="h-10 w-10 rounded bg-[color:var(--color-surface-raised)]" />
+                  )}
+                  <div className="flex-1">
+                    <div className="font-medium">
+                      {h.title} {"//"} {h.company.name}
+                    </div>
+                    <div className="data-mono font-mono text-mono-xs uppercase text-[color:var(--color-text-muted)]">
+                      {h.start_date} → {h.end_date ?? "PRESENT"}
+                    </div>
                   </div>
-                  <div className="data-mono font-mono text-xs uppercase tracking-wider text-zinc-500">
-                    {h.start_date} → {h.end_date ?? "PRESENT"}
-                  </div>
+                  {h.segment ? <Badge>{h.segment}</Badge> : null}
+                  {h.is_current ? <Badge tone="good">CURRENT</Badge> : null}
                 </div>
-                {h.segment ? <DataBadge>{h.segment}</DataBadge> : null}
-                {h.is_current ? <DataBadge tone="good">CURRENT</DataBadge> : null}
               </CardBody>
             </Card>
           ))}
           {histQ.data?.work_history?.length === 0 ? (
-            <div className="data-mono font-mono text-xs uppercase tracking-[0.2em] text-zinc-500">
-              No work history yet. <Link to="/me/profile" className="text-emerald-400 hover:text-emerald-300">Add entries →</Link>
+            <div className="data-mono font-mono text-mono-xs uppercase text-[color:var(--color-text-muted)]">
+              No work history yet.{" "}
+              <Link
+                to="/me/profile"
+                className="text-[color:var(--color-text-accent)] hover:text-[color:var(--color-accent-primaryHover)]"
+              >
+                Add entries →
+              </Link>
             </div>
           ) : null}
-        </div>
-      </section>
-    </div>
+        </Stack>
+      </PageSection>
+    </Page>
   );
 }

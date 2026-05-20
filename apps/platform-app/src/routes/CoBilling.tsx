@@ -1,9 +1,17 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "../lib/api";
-import { Card, CardBody, CardHeader } from "../components/ui/Card";
-import { Button } from "../components/ui/Button";
-import { SectionLabel } from "../components/ui/SectionLabel";
-import { DataBadge } from "../components/ui/DataBadge";
+import {
+  Page,
+  PageHeader,
+  PageSection,
+  Card,
+  CardBody,
+  CardHeader,
+  Button,
+  Badge,
+  Grid,
+  Stat,
+} from "@ae-hq/ui";
 
 type Tier = "starter" | "growth" | "scale";
 
@@ -35,69 +43,62 @@ export function CoBilling() {
   const sub = q.data?.subscription;
 
   return (
-    <div className="mx-auto max-w-5xl px-6 py-12">
-      <SectionLabel index={1}>BILLING</SectionLabel>
-      <h1 className="font-display mt-3 text-3xl font-semibold tracking-tight">Subscription</h1>
+    <Page>
+      <PageHeader section="01" eyebrow="01 // BILLING" title="Subscription" />
 
       {sub ? (
-        <Card className="mt-8">
+        <Card>
           <CardBody>
             <div className="flex items-center justify-between">
-              <div>
-                <div className="data-mono font-mono text-xs uppercase tracking-wider text-zinc-500">CURRENT TIER</div>
-                <div className="data-mono mt-1 font-mono text-3xl font-semibold uppercase">
-                  {sub.tier}
-                </div>
-              </div>
-              <div className="text-right">
-                <div className="data-mono font-mono text-xs uppercase tracking-wider text-zinc-500">UNLOCKS USED</div>
-                <div className="data-mono mt-1 font-mono text-3xl font-semibold">
-                  {sub.unlocks_used_current_period} / {sub.unlocks_per_month}
-                </div>
-              </div>
+              <Stat label="CURRENT TIER" value={(sub.tier as string).toUpperCase()} />
+              <Stat
+                label="UNLOCKS USED"
+                value={`${sub.unlocks_used_current_period} / ${sub.unlocks_per_month}`}
+              />
             </div>
-            <DataBadge tone="good" className="mt-6">
-              {">"} ACTIVE
-            </DataBadge>
+            <div className="mt-6">
+              <Badge tone="good">{">"} ACTIVE</Badge>
+            </div>
           </CardBody>
         </Card>
       ) : (
-        <Card className="mt-8">
+        <Card>
           <CardBody>
-            <div className="text-zinc-400">No active subscription. Pick a tier below.</div>
+            <div className="text-[color:var(--color-text-muted)]">
+              No active subscription. Pick a tier below.
+            </div>
           </CardBody>
         </Card>
       )}
 
-      <section className="mt-12">
-        <SectionLabel index={2}>PLANS</SectionLabel>
-        <div className="mt-4 grid gap-4 md:grid-cols-3">
+      <PageSection section="02" title="Plans">
+        <Grid cols={1} mdCols={3} gap="4">
           {TIERS.map((t) => (
             <Card key={t.id}>
               <CardHeader>
-                <div className="font-display text-2xl">{t.name}</div>
-                <div className="data-mono mt-1 font-mono text-xs uppercase tracking-wider text-emerald-400">
+                <div className="font-display text-display-sm">{t.name}</div>
+                <div className="data-mono mt-1 font-mono text-mono-xs uppercase text-[color:var(--color-text-accent)]">
                   {t.price}
                 </div>
               </CardHeader>
-              <CardBody className="space-y-3">
-                <div className="data-mono font-mono text-sm">
-                  {t.unlocks} unlocks / month
+              <CardBody>
+                <div className="data-mono font-mono text-body-sm">{t.unlocks} unlocks / month</div>
+                <div className="mt-4">
+                  <Button
+                    size="md"
+                    variant={sub?.tier === t.id ? "secondary" : "primary"}
+                    onClick={() => m.mutate(t.id)}
+                    disabled={m.isPending || sub?.tier === t.id}
+                    data-testid={`tier-${t.id}`}
+                  >
+                    {sub?.tier === t.id ? "Current" : "Choose"}
+                  </Button>
                 </div>
-                <Button
-                  size="md"
-                  variant={sub?.tier === t.id ? "secondary" : "primary"}
-                  onClick={() => m.mutate(t.id)}
-                  disabled={m.isPending || sub?.tier === t.id}
-                  data-testid={`tier-${t.id}`}
-                >
-                  {sub?.tier === t.id ? "Current" : "Choose"}
-                </Button>
               </CardBody>
             </Card>
           ))}
-        </div>
-      </section>
-    </div>
+        </Grid>
+      </PageSection>
+    </Page>
   );
 }

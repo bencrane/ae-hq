@@ -1,9 +1,14 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "../lib/api";
-import { Card, CardBody, CardHeader } from "../components/ui/Card";
-import { Button } from "../components/ui/Button";
-import { SectionLabel } from "../components/ui/SectionLabel";
-import { DataBadge } from "../components/ui/DataBadge";
+import {
+  Page,
+  PageHeader,
+  Card,
+  CardBody,
+  Button,
+  Badge,
+  Stack,
+} from "@ae-hq/ui";
 
 type Approval = {
   id: string;
@@ -48,62 +53,76 @@ export function MeApprovals() {
   });
 
   return (
-    <div className="mx-auto max-w-4xl px-6 py-12">
-      <SectionLabel index={1}>APPROVALS</SectionLabel>
-      <h1 className="font-display mt-3 text-3xl font-semibold tracking-tight">Companies asking for you</h1>
-
-      <div className="mt-8 grid gap-3">
+    <Page>
+      <PageHeader
+        section="01"
+        eyebrow="01 // APPROVALS"
+        title="Companies asking for you"
+      />
+      <Stack gap="3">
         {(q.data?.approvals ?? []).map((a) => (
           <Card key={a.id} data-testid={`approval-${a.id}`}>
-            <CardBody className="flex items-center gap-4">
-              {a.company.logo_url ? (
-                <img src={a.company.logo_url} alt="" className="h-12 w-12 rounded" />
-              ) : (
-                <div className="h-12 w-12 rounded bg-zinc-800" />
-              )}
-              <div className="flex-1">
-                <div className="font-medium">{a.company.name}</div>
-                <div className="data-mono mt-1 font-mono text-xs uppercase tracking-wider text-zinc-500">
-                  {new Date(a.created_at).toISOString().slice(0, 10)}
+            <CardBody>
+              <div className="flex items-center gap-4">
+                {a.company.logo_url ? (
+                  <img src={a.company.logo_url} alt="" className="h-12 w-12 rounded" />
+                ) : (
+                  <div className="h-12 w-12 rounded bg-[color:var(--color-surface-raised)]" />
+                )}
+                <div className="flex-1">
+                  <div className="font-medium">{a.company.name}</div>
+                  <div className="data-mono mt-1 font-mono text-mono-xs uppercase text-[color:var(--color-text-muted)]">
+                    {new Date(a.created_at).toISOString().slice(0, 10)}
+                  </div>
+                  {a.message ? (
+                    <div className="mt-2 text-body-sm text-[color:var(--color-text-default)]">
+                      {a.message}
+                    </div>
+                  ) : null}
                 </div>
-                {a.message ? <div className="mt-2 text-sm text-zinc-300">{a.message}</div> : null}
-              </div>
-              <div className="flex items-center gap-3">
-                <DataBadge
-                  tone={a.status === "accepted" ? "good" : a.status === "declined" ? "warn" : "default"}
-                >
-                  {a.status.toUpperCase()}
-                </DataBadge>
-                {a.status === "pending" ? (
-                  <>
-                    <Button
-                      size="sm"
-                      data-testid={`accept-${a.id}`}
-                      disabled={acceptM.isPending}
-                      onClick={() => acceptM.mutate(a.id)}
-                    >
-                      Accept
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      disabled={declineM.isPending}
-                      onClick={() => declineM.mutate(a.id)}
-                    >
-                      Decline
-                    </Button>
-                  </>
-                ) : null}
+                <div className="flex items-center gap-3">
+                  <Badge
+                    tone={
+                      a.status === "accepted"
+                        ? "good"
+                        : a.status === "declined"
+                          ? "warn"
+                          : "default"
+                    }
+                  >
+                    {a.status.toUpperCase()}
+                  </Badge>
+                  {a.status === "pending" ? (
+                    <>
+                      <Button
+                        size="sm"
+                        data-testid={`accept-${a.id}`}
+                        disabled={acceptM.isPending}
+                        onClick={() => acceptM.mutate(a.id)}
+                      >
+                        Accept
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        disabled={declineM.isPending}
+                        onClick={() => declineM.mutate(a.id)}
+                      >
+                        Decline
+                      </Button>
+                    </>
+                  ) : null}
+                </div>
               </div>
             </CardBody>
           </Card>
         ))}
         {q.data?.approvals?.length === 0 ? (
-          <div className="data-mono font-mono text-xs uppercase tracking-[0.2em] text-zinc-500">
+          <div className="data-mono font-mono text-mono-xs uppercase text-[color:var(--color-text-muted)]">
             No approval requests yet.
           </div>
         ) : null}
-      </div>
-    </div>
+      </Stack>
+    </Page>
   );
 }
