@@ -15,7 +15,6 @@
  * `pipeline_activity` row exactly as the old click-to-move dropdown did.
  */
 
-import { type ReactNode } from "react";
 import {
   DndContext,
   type DragEndEvent,
@@ -27,6 +26,7 @@ import {
   useSensors,
 } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
+import type { ReactNode } from "react";
 import { Badge } from "./display";
 import { cx, textColor } from "./utils";
 
@@ -176,7 +176,7 @@ export function KanbanCard({
         )}
         <span
           aria-hidden
-          className={cx("data-mono font-mono text-mono-xs uppercase", textColor.subtle)}
+          className={cx("data-mono font-mono text-mono-xs uppercase", textColor.muted)}
         >
           drag to move
         </span>
@@ -251,7 +251,11 @@ export interface KanbanBoardProps {
  * column track is as wide as its content, so every column is reachable by
  * scrolling the board — the page never clips columns past the fold.
  */
-export function KanbanBoard({ children, "aria-label": ariaLabel, onMoveCandidate }: KanbanBoardProps) {
+export function KanbanBoard({
+  children,
+  "aria-label": ariaLabel,
+  onMoveCandidate,
+}: KanbanBoardProps) {
   // PointerSensor with an 8px activation distance: a click (no movement) opens
   // the card timeline; movement past 8px starts a drag. KeyboardSensor makes
   // the board fully keyboard-operable.
