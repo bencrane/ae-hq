@@ -8,6 +8,7 @@ import postgres from "postgres";
 import { seedCycle3 } from "./cycle-3";
 import { applyCompanyFirmographics } from "./cycle-4";
 import { seedCycle5 } from "./cycle-5";
+import { seedCycle6 } from "./cycle-6";
 
 const SUPABASE_URL = process.env.AE_SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL;
 const SERVICE_ROLE = process.env.AE_SUPABASE_SERVICE_ROLE_KEY;
@@ -112,6 +113,7 @@ async function main() {
   // companies cascade does not reach it; messages/pipeline_activity have no natural
   // unique key, so truncate-and-reseed is the idempotency strategy for the new tables.
   await sql`truncate table
+    public.matches, public.company_match_criteria,
     public.pipeline_activity, public.applications,
     public.pipeline_candidates, public.pipeline_stages,
     public.messages, public.conversations, public.articles,
@@ -415,6 +417,23 @@ async function main() {
   console.log(
     `  seeded cycle-5: applications=${c5.applications} activity=${c5.activity} ` +
       `stages_backfilled=${c5.stagesBackfilled}`,
+  );
+
+  // ----- cycle 6: match criteria, extended intent, ~30 matches -----
+  // Runs last — it UPDATEs intent_signals rows the cycle-1 loop inserted and
+  // creates conversation rows for resolved matches (conversations already
+  // exist from cycle-3, but a resolved match for a new pair needs its own).
+  const c6 = await seedCycle6({
+    sql,
+    companyIds,
+    stripeCompanyId: companyIds.get("stripe")!,
+    testCandidateId: candidateId,
+    recruiterId,
+    anonCandidateIds,
+  });
+  console.log(
+    `  seeded cycle-6: match_criteria=${c6.matchCriteria} intent_extended=${c6.intentExtended} ` +
+      `matches=${c6.matches} conversations=${c6.conversations}`,
   );
 
   // ----- summary -----
