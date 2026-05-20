@@ -1,6 +1,7 @@
-# syntax=docker/dockerfile:1.7
 # platform-app — Vite + React SPA. Railway builds this from the repo root
 # (`docker build -f apps/platform-app/Dockerfile <repo-root>`).
+# Plain classic Dockerfile — no BuildKit-only features (Railway's builder
+# rejects `RUN --mount`); install runs uncached, which is fine.
 #
 # Vite bakes VITE_* env vars at BUILD time. Railway passes them as build-time
 # variables ONLY because the build stage declares matching `ARG`s below. The
@@ -20,8 +21,7 @@
 FROM oven/bun:1.3-alpine AS build
 WORKDIR /app
 COPY . .
-RUN --mount=type=cache,target=/root/.bun/install/cache \
-    bun install --frozen-lockfile
+RUN bun install --frozen-lockfile
 RUN bun run --filter @ae-hq/tokens build
 WORKDIR /app/apps/platform-app
 ARG VITE_SUPABASE_URL

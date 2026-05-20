@@ -1,6 +1,7 @@
-# syntax=docker/dockerfile:1.7
 # platform-api — Bun + Hono BFF. Railway builds this from the repo root
 # (`docker build -f apps/platform-api/Dockerfile <repo-root>`).
+# Plain classic Dockerfile — no BuildKit-only features (Railway's builder
+# rejects `RUN --mount`); install runs uncached, which is fine.
 
 # ── build: install the workspace + bundle the BFF ──────────────────────────
 # bun reads the ROOT package.json (workspaces: apps/*, packages/*) and uses
@@ -13,8 +14,7 @@
 FROM oven/bun:1.3-alpine AS build
 WORKDIR /app
 COPY . .
-RUN --mount=type=cache,target=/root/.bun/install/cache \
-    bun install --frozen-lockfile
+RUN bun install --frozen-lockfile
 RUN cd apps/platform-api && \
     bun build src/index.ts --target=bun --outdir=dist --minify
 
