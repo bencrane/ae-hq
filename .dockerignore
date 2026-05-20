@@ -1,0 +1,47 @@
+# Docker build context excludes.
+# Railway builds each service `docker build -f apps/<svc>/Dockerfile <repo-root>`,
+# so the whole repo is the context. Keep host-only / arch-specific / secret
+# artifacts OUT of the image: faster builds, no wrong-arch native modules, no
+# leaked secrets.
+
+# Dependencies — reinstalled inside the image (host node_modules are macOS-arch).
+node_modules
+**/node_modules
+
+# Build output — regenerated inside the image.
+dist
+**/dist
+.vite
+**/.vite
+*.tsbuildinfo
+**/*.tsbuildinfo
+storybook-static
+**/storybook-static
+.turbo
+
+# VCS
+.git
+.gitignore
+
+# Secrets / env — Railway injects env vars; never bake them into the image.
+.env
+.env.*
+!.env.example
+
+# Local tooling / editor / OS cruft
+.gstack
+.DS_Store
+*.log
+
+# Tests & their artifacts — not needed to build or run the services.
+e2e
+e2e/.auth
+playwright-report
+test-results
+coverage
+
+# Docs & operator material — not part of any runtime image.
+docs
+
+# CI / verifier scripts — not needed inside the image.
+scripts/benchmarks
