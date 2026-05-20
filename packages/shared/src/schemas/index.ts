@@ -13,3 +13,4 @@ export * from "./messaging";
 export * from "./article";
 export * from "./pipeline";
 export * from "./application";
+export * from "./matchmaking";

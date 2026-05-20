@@ -5,6 +5,7 @@ import { supabaseAdmin } from "../db";
 import { verifyJwt } from "../auth";
 import type { Variables } from "../middleware";
 import { buildJobCollections } from "./job-collections";
+import { runConsentEngine } from "../consent-engine";
 
 // `/jobs` lives in the PUBLIC route group — anonymous browse must keep working.
 // To support `?for_me=true` the handler optionally reads the JWT when present
@@ -191,6 +192,23 @@ export const jobsRoutes = new Hono<{ Variables: Variables }>()
         kind: "added_to_pipeline",
         payload_json: { stage_id: firstStage.id },
       });
+      // cycle-6: applying to a job is an AE-initiated interest action toward
+      // the hiring company, tied to this posting. Run the consent engine so
+      // the apply produces a `matches` row (origin=ae_initiated, job_id set);
+      // it resolves if the company's standing consent is granted (the AE
+      // satisfies the company's match-criteria). Best-effort — an apply must
+      // not fail on a consent-engine error; the row is already created.
+      try {
+        await runConsentEngine({
+          origin: "ae_initiated",
+          companyId: job.company_id,
+          candidateId,
+          jobId: jobId,
+          actorUserId: candidateId,
+        });
+      } catch (e) {
+        c.get("log").warn({ err: (e as Error).message }, "apply consent-engine failed");
+      }
     }
     return c.json({ application: created, created: true });
   });

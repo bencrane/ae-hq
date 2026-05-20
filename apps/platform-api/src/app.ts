@@ -14,6 +14,7 @@ import { conversationsRoutes } from "./routes/conversations";
 import { articlesRoutes } from "./routes/articles";
 import { pipelineRoutes } from "./routes/pipeline";
 import { webhooksRoutes } from "./routes/webhooks";
+import { matchesRoutes } from "./routes/matches";
 
 const allowedOrigins = env.ALLOWED_ORIGINS.split(",").map((s) => s.trim()).filter(Boolean);
 
@@ -33,7 +34,9 @@ const authedV1 = new Hono<{ Variables: Variables }>()
   // router at the same prefix; /jobs does not collide with the routers above.
   .route("/company", companyJobsRoutes)
   .route("/notifications", notificationsRoutes)
-  .route("/conversations", conversationsRoutes);
+  .route("/conversations", conversationsRoutes)
+  // cycle-6 — the consent-engine matches surface (GET /matches, accept/decline).
+  .route("/matches", matchesRoutes);
 
 // v1 group: public routes + authed subgroup, all under /api/v1.
 // `articles` is public (Carrying Quota editorial is read-only public content —
