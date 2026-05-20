@@ -171,7 +171,6 @@ export {
   type KanbanBoardProps,
   type KanbanColumnProps,
   type KanbanCardProps,
-  type KanbanStageOption,
   type StageHeaderProps,
   type CandidateTimelineProps,
   type TimelineEntryProps,

@@ -72,7 +72,32 @@ export function CoPipeline() {
       void qc.invalidateQueries({ queryKey: ["pipeline"] });
       void qc.invalidateQueries({ queryKey: ["pipeline-activity"] });
     },
+    onError: () => {
+      // a failed move rolls the optimistic placement back to server truth.
+      void qc.invalidateQueries({ queryKey: ["pipeline"] });
+    },
   });
+
+  // Drag-drop: move the dragged candidate to the destination stage. The card is
+  // placed optimistically (the kanban cache is patched immediately) so the move
+  // feels instant; the mutation then persists it and writes pipeline_activity.
+  function handleMoveCandidate(candidateId: string, toStageId: string) {
+    const current = candidates.find((c) => c.candidate_id === candidateId);
+    if (!current || current.stage_id === toStageId) return;
+    qc.setQueryData(
+      ["pipeline"],
+      (prev: { stages: PipelineStage[]; candidates: PipelineCandidateCard[] } | undefined) =>
+        prev
+          ? {
+              ...prev,
+              candidates: prev.candidates.map((c) =>
+                c.candidate_id === candidateId ? { ...c, stage_id: toStageId } : c,
+              ),
+            }
+          : prev,
+    );
+    moveM.mutate({ candidateId, stageId: toStageId });
+  }
 
   return (
     <Page variant="full" align="left" data-testid="pipeline-page">
@@ -92,12 +117,13 @@ export function CoPipeline() {
           message="This company has no pipeline stages configured yet."
         />
       ) : (
-        <KanbanBoard aria-label="Hiring pipeline">
+        <KanbanBoard aria-label="Hiring pipeline" onMoveCandidate={handleMoveCandidate}>
           {stages.map((stage) => {
             const inStage = candidates.filter((c) => c.stage_id === stage.id);
             return (
               <KanbanColumn
                 key={stage.id}
+                stageId={stage.id}
                 header={
                   <StageHeader
                     name={stage.name}
@@ -111,18 +137,12 @@ export function CoPipeline() {
                 {inStage.map((cand) => (
                   <KanbanCard
                     key={cand.id}
+                    candidateId={cand.candidate_id}
                     initials={cand.display.initials}
                     headline={cand.display.headline}
                     meta={`${cand.display.segment_focus ?? "AE"} // ${cand.display.years_experience} yrs`}
                     hasConversation={Boolean(cand.conversation_id)}
                     notesPreview={cand.notes}
-                    moveDisabled={moveM.isPending}
-                    moveTargets={stages
-                      .filter((s) => s.id !== stage.id)
-                      .map((s) => ({ id: s.id, name: s.name }))}
-                    onMove={(stageId) =>
-                      moveM.mutate({ candidateId: cand.candidate_id, stageId })
-                    }
                     onOpen={() => setOpenCandidateId(cand.candidate_id)}
                   />
                 ))}
