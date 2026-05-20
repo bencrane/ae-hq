@@ -1,0 +1,40 @@
+/*
+ * Storybook preview CSS — imports the platform's CSS chain so primitives render
+ * with the same tokens as production. Tailwind v4 + `@theme` from `@ae-hq/tokens`
+ * needs the `@tailwindcss/vite` plugin in vite.config.ts.
+ *
+ * Fonts are loaded by the platform app's main bundle via `@fontsource-variable/*`.
+ * Storybook deliberately does NOT import them — the visual contract is the
+ * token-driven layout, not the type face. Fallbacks render the same geometry.
+ */
+@import "tailwindcss";
+@import "@ae-hq/tokens/css";
+
+@theme {
+  --font-sans: "Geist Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Helvetica,
+    Arial, sans-serif;
+  --font-mono: "Geist Mono Variable", ui-monospace, "SFMono-Regular", Menlo, Monaco, Consolas,
+    monospace;
+  --font-display: "Playfair Display Variable", ui-serif, Georgia, Cambria, "Times New Roman", Times,
+    serif;
+}
+
+html,
+body,
+#storybook-root,
+.sb-show-main {
+  background-color: var(--color-surface-base) !important;
+  color: var(--color-text-strong);
+  font-family: var(--font-sans);
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+}
+
+[class*="font-mono"],
+.data-mono {
+  font-family: var(--font-mono);
+}

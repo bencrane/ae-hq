@@ -1,0 +1,26 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "composite": false,
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "jsx": "react-jsx",
+    "types": ["vite/client", "node"],
+    "baseUrl": ".",
+    "paths": {
+      "@ae-hq/shared": ["../../packages/shared/src/index.ts"],
+      "@ae-hq/shared/*": ["../../packages/shared/src/*"],
+      "@ae-hq/api": ["../platform-api/src/app.ts"],
+      "@/*": ["src/*"]
+    },
+    "skipLibCheck": true
+  },
+  "include": [
+    "src/**/*",
+    "vite.config.ts",
+    "serve.js",
+    "../../packages/shared/src/**/*",
+    "../platform-api/src/**/*"
+  ]
+}

@@ -1,0 +1,44 @@
+{
+  "name": "ae-hq",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AccountExecutive.com platform monorepo",
+  "scripts": {
+    "build": "bun run --filter @ae-hq/tokens build && bun run --filter platform-app build && bun run --filter platform-api build",
+    "dev": "concurrently -k -n api,app -c blue,green \"bun run --filter platform-api dev\" \"bun run --filter platform-app dev\"",
+    "typecheck": "tsc -p packages/tokens --noEmit && tsc -p packages/shared --noEmit && tsc -p packages/ui --noEmit && tsc -p packages/eslint-plugin-ae-hq --noEmit && tsc -p apps/platform-api --noEmit && tsc -p apps/platform-app --noEmit",
+    "lint": "biome check packages/tokens packages/ui packages/eslint-plugin-ae-hq docs eslint.config.mjs && bun x eslint apps/platform-app/src/routes/**/*.tsx",
+    "test": "bun test --filter platform-api && bun run --filter @ae-hq/shared test && bun run --filter @ae-hq/tokens test && bun run --filter @ae-hq/ui test",
+    "test:e2e": "playwright test --config=e2e/playwright.config.ts",
+    "test:a11y": "bun x tsx scripts/benchmarks/check-storybook-a11y.ts",
+    "storybook": "bun run --filter @ae-hq/ui storybook",
+    "storybook:build": "bun run --filter @ae-hq/ui storybook:build",
+    "seed": "bun run seed/index.ts",
+    "db:reset": "bun run scripts/db-reset.ts"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "engines": {
+    "bun": ">=1.3.0",
+    "node": ">=22"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "1.9.4",
+    "@playwright/test": "1.49.0",
+    "@supabase/supabase-js": "^2.106.0",
+    "@types/bun": "1.2.0",
+    "@types/node": "22.10.0",
+    "@typescript-eslint/parser": "8.18.2",
+    "@typescript-eslint/utils": "8.18.2",
+    "bun-types": "^1.3.14",
+    "concurrently": "9.1.0",
+    "eslint": "9.17.0",
+    "eslint-plugin-ae-hq": "workspace:*",
+    "playwright": "1.49.0",
+    "postgres": "^3.4.9",
+    "tsx": "4.19.2",
+    "typescript": "5.7.2"
+  }
+}

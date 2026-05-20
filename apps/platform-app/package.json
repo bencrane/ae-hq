@@ -1,0 +1,41 @@
+{
+  "name": "platform-app",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0 --port 5173",
+    "build": "tsc -b --noEmit && vite build",
+    "preview": "vite preview --host 0.0.0.0 --port 5173",
+    "start": "node ./serve.js",
+    "typecheck": "tsc -b --noEmit"
+  },
+  "dependencies": {
+    "@ae-hq/shared": "workspace:*",
+    "@ae-hq/tokens": "workspace:*",
+    "@ae-hq/ui": "workspace:*",
+    "@fontsource-variable/geist": "5.1.0",
+    "@fontsource-variable/geist-mono": "5.1.0",
+    "@fontsource-variable/playfair-display": "5.1.0",
+    "@supabase/supabase-js": "2.45.4",
+    "@tanstack/react-query": "5.62.7",
+    "clsx": "2.1.1",
+    "hono": "4.6.14",
+    "lucide-react": "0.469.0",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "react-router-dom": "7.1.1",
+    "zod": "3.23.8"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "4.0.0-beta.7",
+    "@types/node": "22.10.0",
+    "@types/react": "19.0.2",
+    "@types/react-dom": "19.0.2",
+    "@vitejs/plugin-react": "4.3.4",
+    "express": "4.21.2",
+    "tailwindcss": "4.0.0-beta.7",
+    "typescript": "5.7.2",
+    "vite": "6.0.3"
+  }
+}

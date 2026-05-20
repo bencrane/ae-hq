@@ -1,0 +1,46 @@
+@import "tailwindcss";
+@import "@ae-hq/tokens/css";
+
+/*
+ * Cycle-1 left this @theme block inline. The tokens package now owns it;
+ * the `@import "@ae-hq/tokens/css"` above carries the full @theme. Anything
+ * that should be a token belongs in `packages/tokens/src/tokens.ts`, not here.
+ */
+@theme {
+  /* Fonts kept inline — they reference fontsource which the tokens package
+   * doesn't own. Everything else lives in the tokens import. */
+  --font-sans:
+    "Geist Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+  --font-mono:
+    "Geist Mono Variable", ui-monospace, "SFMono-Regular", Menlo, Monaco, Consolas, monospace;
+  --font-display:
+    "Playfair Display Variable", ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+}
+
+html,
+body {
+  background-color: var(--color-surface-base);
+  color: var(--color-text-strong);
+  font-family: var(--font-sans);
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
+}
+
+.data-mono,
+[class*="font-mono"],
+code,
+pre,
+kbd {
+  font-family: var(--font-mono);
+}
+
+/* Make Playfair load with swap to keep LCP fast (p3 fix) */
+@font-face {
+  font-display: swap;
+  font-family: "Playfair Display Variable";
+}

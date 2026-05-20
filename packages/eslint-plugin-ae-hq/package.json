@@ -1,0 +1,31 @@
+{
+  "name": "eslint-plugin-ae-hq",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": ["dist", "src"],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "test": "bun test src/no-route-geometry.test.ts"
+  },
+  "peerDependencies": {
+    "eslint": ">=9"
+  },
+  "dependencies": {
+    "@typescript-eslint/utils": "8.18.2"
+  },
+  "devDependencies": {
+    "@typescript-eslint/rule-tester": "8.18.2",
+    "eslint": "9.17.0",
+    "typescript": "5.7.2"
+  }
+}

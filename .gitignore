@@ -1,0 +1,14 @@
+node_modules
+dist
+storybook-static
+.turbo
+*.log
+.env
+.env.local
+.DS_Store
+playwright-report
+test-results
+e2e/.auth
+.next
+*.tsbuildinfo
+coverage
