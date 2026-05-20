@@ -6,6 +6,7 @@
 import { createClient } from "@supabase/supabase-js";
 import postgres from "postgres";
 import { seedCycle3 } from "./cycle-3";
+import { applyCompanyFirmographics } from "./cycle-4";
 
 const SUPABASE_URL = process.env.AE_SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL;
 const SERVICE_ROLE = process.env.AE_SUPABASE_SERVICE_ROLE_KEY;
@@ -136,6 +137,12 @@ async function main() {
     companyIds.set(c.slug, row!.id);
   }
   console.log(`  seeded ${companyIds.size} companies`);
+
+  // ----- cycle 4: company firmographics (sales motion, founding, investors, headcount) -----
+  // Runs right after the companies insert so every company carries firmographic
+  // data before the candidate-side sales-motion derivation can read it.
+  const firmo = await applyCompanyFirmographics(sql);
+  console.log(`  seeded firmographics for ${firmo.updated} companies`);
 
   // ----- jobs (50 across companies) -----
   let jobCount = 0;
