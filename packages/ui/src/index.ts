@@ -160,6 +160,24 @@ export {
 // Markdown
 export { Markdown } from "./markdown";
 
+// Pipeline
+export {
+  KanbanBoard,
+  KanbanColumn,
+  KanbanCard,
+  StageHeader,
+  CandidateTimeline,
+  TimelineEntry,
+  type KanbanBoardProps,
+  type KanbanColumnProps,
+  type KanbanCardProps,
+  type KanbanStageOption,
+  type StageHeaderProps,
+  type CandidateTimelineProps,
+  type TimelineEntryProps,
+  type TimelineEntryKind,
+} from "./pipeline";
+
 // Utils
 export {
   cx,

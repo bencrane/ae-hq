@@ -10,6 +10,8 @@ import {
 } from "@ae-hq/shared";
 import { supabaseAdmin } from "../db";
 import type { Variables } from "../middleware";
+import { ensureConversation } from "./conversations";
+import { ensurePipelineCandidate } from "./pipeline";
 
 export const candidatesRoutes = new Hono<{ Variables: Variables }>()
   // POST /api/v1/candidates/onboard
@@ -168,11 +170,12 @@ export const candidatesRoutes = new Hono<{ Variables: Variables }>()
         .maybeSingle();
       if (error) return c.json({ error: { code: "db_error", message: error.message } }, 500);
       if (!data) return c.json({ error: { code: "not_found", message: "approval not found or already responded" } }, 404);
+      const companyId = data.company_id as string;
       // notify the recruiter side
       const { data: members } = await supabaseAdmin
         .from("company_members")
         .select("user_id")
-        .eq("company_id", data.company_id);
+        .eq("company_id", companyId);
       for (const m of members ?? []) {
         await supabaseAdmin.from("notifications").insert({
           user_id: m.user_id,
@@ -180,6 +183,38 @@ export const candidatesRoutes = new Hono<{ Variables: Variables }>()
           payload_json: { candidate_id: userId, unlock_request_id: id },
         });
       }
+
+      // ── unlock-accept side effects (cycle 3) ──
+      // Accepting an unlock starts the relationship: create the conversation
+      // thread and place the candidate in the company's pipeline. These are
+      // multiple non-transactional writes (supabase-js cannot do multi-
+      // statement transactions). They are ordered so a partial failure +
+      // retry is safe: ensureConversation is idempotent on
+      // UNIQUE(candidate_id, company_id) and ensurePipelineCandidate is
+      // idempotent on UNIQUE(company_id, candidate_id). A missing-stages
+      // company degrades gracefully (no pipeline row, conversation still made).
+      try {
+        const conversation = await ensureConversation(companyId, userId, userId);
+        const pipeline = await ensurePipelineCandidate({
+          companyId,
+          candidateId: userId,
+          addedBy: userId,
+          conversationId: conversation?.id ?? null,
+        });
+        if (pipeline.created && pipeline.pipelineCandidateId) {
+          await supabaseAdmin.from("pipeline_activity").insert({
+            pipeline_candidate_id: pipeline.pipelineCandidateId,
+            actor_user_id: userId,
+            kind: "unlocked",
+            payload_json: { unlock_request_id: id, conversation_id: conversation?.id ?? null },
+          });
+        }
+      } catch (e) {
+        // do not fail the accept on a side-effect error — the unlock is already
+        // accepted; log and let a later retry reconcile via the idempotent paths.
+        c.get("log").warn({ err: (e as Error).message }, "unlock-accept side effect failed");
+      }
+
       return c.json({ approval: data });
     },
   )

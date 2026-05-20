@@ -11,6 +11,7 @@ import { companyRoutes } from "./routes/company";
 import { notificationsRoutes } from "./routes/notifications";
 import { conversationsRoutes } from "./routes/conversations";
 import { articlesRoutes } from "./routes/articles";
+import { pipelineRoutes } from "./routes/pipeline";
 import { webhooksRoutes } from "./routes/webhooks";
 
 const allowedOrigins = env.ALLOWED_ORIGINS.split(",").map((s) => s.trim()).filter(Boolean);
@@ -23,6 +24,10 @@ const authedV1 = new Hono<{ Variables: Variables }>()
   .route("/candidates", candidatesRoutes)
   .route("/credentials", credentialsRoutes)
   .route("/company", companyRoutes)
+  // pipeline endpoints are also under /company (/company/pipeline/...) —
+  // mounted as a second router at the same prefix; the paths do not collide
+  // with companyRoutes (/me, /candidates, /billing, /ats).
+  .route("/company", pipelineRoutes)
   .route("/notifications", notificationsRoutes)
   .route("/conversations", conversationsRoutes);
 
