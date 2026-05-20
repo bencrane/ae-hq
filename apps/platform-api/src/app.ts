@@ -9,6 +9,7 @@ import { candidatesRoutes } from "./routes/candidates";
 import { credentialsRoutes } from "./routes/credentials";
 import { companyRoutes } from "./routes/company";
 import { notificationsRoutes } from "./routes/notifications";
+import { conversationsRoutes } from "./routes/conversations";
 import { webhooksRoutes } from "./routes/webhooks";
 
 const allowedOrigins = env.ALLOWED_ORIGINS.split(",").map((s) => s.trim()).filter(Boolean);
@@ -21,7 +22,8 @@ const authedV1 = new Hono<{ Variables: Variables }>()
   .route("/candidates", candidatesRoutes)
   .route("/credentials", credentialsRoutes)
   .route("/company", companyRoutes)
-  .route("/notifications", notificationsRoutes);
+  .route("/notifications", notificationsRoutes)
+  .route("/conversations", conversationsRoutes);
 
 // v1 group: public routes + authed subgroup, all under /api/v1
 const v1 = new Hono<{ Variables: Variables }>()

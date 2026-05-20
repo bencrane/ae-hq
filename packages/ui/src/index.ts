@@ -112,6 +112,38 @@ export {
   type SlideInProps,
 } from "./motion";
 
+// Interactive (shared)
+export {
+  Tabs,
+  TabList,
+  TabPanel,
+  PreferenceTagPicker,
+  type TabsProps,
+  type TabListProps,
+  type TabPanelProps,
+  type TabItem,
+  type PreferenceTagPickerProps,
+  type PreferenceTagOption,
+} from "./interactive";
+
+// Messaging
+export {
+  ConversationList,
+  ConversationListItem,
+  MessageThread,
+  MessageBubble,
+  MessageComposer,
+  MessageDayDivider,
+  ThreadEmptyState,
+  type ConversationListProps,
+  type ConversationListItemProps,
+  type MessageThreadProps,
+  type MessageBubbleProps,
+  type MessageComposerProps,
+  type MessageDayDividerProps,
+  type ThreadEmptyStateProps,
+} from "./messaging";
+
 // Utils
 export {
   cx,
