@@ -13,6 +13,8 @@
   },
   "watchPatterns": [
     "apps/platform-app/**",
-    "packages/shared/**"
+    "packages/shared/**",
+    "packages/ui/**",
+    "packages/tokens/**"
   ]
 }

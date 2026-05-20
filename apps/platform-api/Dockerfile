@@ -1,26 +1,30 @@
 # syntax=docker/dockerfile:1.7
-FROM oven/bun:1.3-alpine AS deps
-WORKDIR /app
-COPY package.json bun.lock* ./
-COPY apps/platform-api/package.json ./apps/platform-api/
-COPY packages/shared/package.json ./packages/shared/
-RUN --mount=type=cache,target=/root/.bun/install/cache \
-    bun install --frozen-lockfile || bun install
+# platform-api — Bun + Hono BFF. Railway builds this from the repo root
+# (`docker build -f apps/platform-api/Dockerfile <repo-root>`).
 
+# ── build: install the workspace + bundle the BFF ──────────────────────────
+# bun reads the ROOT package.json (workspaces: apps/*, packages/*) and uses
+# its isolated install layout: every workspace member gets its own
+# node_modules/ with relative symlinks into the shared node_modules/.bun/
+# store. The whole repo is copied in first so every member's package.json is
+# present — bun then installs ALL workspace dependencies in one pass.
+# `bun build --target=bun` produces a single self-contained bundle, so the
+# runtime stage needs no node_modules at all.
 FROM oven/bun:1.3-alpine AS build
 WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /app/apps/platform-api/node_modules ./apps/platform-api/node_modules 2>/dev/null || true
 COPY . .
-WORKDIR /app/apps/platform-api
 RUN --mount=type=cache,target=/root/.bun/install/cache \
+    bun install --frozen-lockfile
+RUN cd apps/platform-api && \
     bun build src/index.ts --target=bun --outdir=dist --minify
 
+# ── runtime: run the bundled BFF ───────────────────────────────────────────
+# The bundle is fully self-contained (no bare requires) — no node_modules
+# copied. env is read at runtime via a lazy Proxy (src/env.ts): no build-time
+# secrets. Railway injects PORT; src/env.ts honours it (default 8080).
 FROM oven/bun:1.3-alpine AS runtime
 WORKDIR /app
 ENV NODE_ENV=production
 COPY --from=build /app/apps/platform-api/dist ./dist
-COPY --from=build /app/apps/platform-api/package.json ./
-COPY --from=deps /app/node_modules ./node_modules
 EXPOSE 8080
 CMD ["bun", "run", "dist/index.js"]
