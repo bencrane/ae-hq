@@ -1,18 +1,32 @@
 /**
  * Pipeline primitives — the recruiter kanban board.
  *
- * `KanbanBoard` — the horizontal-scrolling column container.
- * `KanbanColumn` — one stage column with a `StageHeader`.
+ * `KanbanBoard` — the horizontal-scrolling column container. Owns a dnd-kit
+ *   `DndContext`: cards are dragged column→column and dropped to change stage.
+ * `KanbanColumn` — one stage column (a dnd-kit droppable) with a `StageHeader`.
  * `StageHeader` — the column header (name + count + color accent).
- * `KanbanCard` — one candidate card with a click-to-move stage menu.
+ * `KanbanCard` — one candidate card (a dnd-kit draggable). Drag it to another
+ *   column to move it; click it to open the timeline.
  * `CandidateTimeline` / `TimelineEntry` — the per-candidate activity drawer.
  *
- * Click-to-move (a stage menu on each card) is the move mechanism — HTML5
- * drag-and-drop is fragile to drive in e2e, and the directive explicitly
- * permits a click menu. The board stays functional first.
+ * Drag-and-drop is real (dnd-kit `PointerSensor` + `KeyboardSensor`) — pick a
+ * card up, drag it to another column, drop it. Keyboard users tab to a card,
+ * press Space to lift it, arrow to a column, Space to drop. The move writes a
+ * `pipeline_activity` row exactly as the old click-to-move dropdown did.
  */
 
-import { type ReactNode, useState } from "react";
+import {
+  DndContext,
+  type DragEndEvent,
+  KeyboardSensor,
+  PointerSensor,
+  useDraggable,
+  useDroppable,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import { CSS } from "@dnd-kit/utilities";
+import type { ReactNode } from "react";
 import { Badge } from "./display";
 import { cx, textColor } from "./utils";
 
@@ -70,12 +84,9 @@ export function StageHeader({ name, count, color = "default", isTerminal }: Stag
 
 // ────────────── KanbanCard ──────────────
 
-export interface KanbanStageOption {
-  id: string;
-  name: string;
-}
-
 export interface KanbanCardProps {
+  /** Stable candidate id — the dnd-kit draggable id and the move subject. */
+  candidateId: string;
   /** Candidate initials (anonymized). */
   initials: string;
   headline?: string | null;
@@ -84,35 +95,48 @@ export interface KanbanCardProps {
   /** Whether this candidate has an active conversation. */
   hasConversation?: boolean;
   notesPreview?: string | null;
-  /** Stages this card can be moved to (excludes the current stage). */
-  moveTargets: ReadonlyArray<KanbanStageOption>;
-  /** Called with the destination stage id when a move target is picked. */
-  onMove: (stageId: string) => void;
-  /** Called when the card body is clicked (opens the timeline drawer). */
+  /** Called when the card is clicked (opens the timeline drawer). */
   onOpen?: () => void;
-  /** Disable the move menu (e.g. while a move is in flight). */
-  moveDisabled?: boolean;
 }
 
+/**
+ * A draggable candidate card. The whole card is the drag handle — a plain
+ * pointer-down then movement past the activation distance starts a drag; a
+ * pointer-down with no movement is a click and opens the timeline. Keyboard:
+ * focus the card and press Space to lift it, arrows to choose a column.
+ */
 export function KanbanCard({
+  candidateId,
   initials,
   headline,
   meta,
   hasConversation,
   notesPreview,
-  moveTargets,
-  onMove,
   onOpen,
-  moveDisabled,
 }: KanbanCardProps) {
-  const [menuOpen, setMenuOpen] = useState(false);
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+    id: candidateId,
+  });
   return (
     <div
+      ref={setNodeRef}
       data-testid="kanban-card"
+      data-pipeline-candidate-id={candidateId}
+      style={{
+        transform: transform ? CSS.Translate.toString(transform) : undefined,
+        // While dragging, lift the card above the columns so it is never
+        // clipped as it crosses a column boundary.
+        zIndex: isDragging ? 50 : undefined,
+      }}
+      {...attributes}
+      {...listeners}
+      onClick={onOpen}
       className={cx(
-        "relative flex flex-col gap-2 rounded-xl border px-4 py-3 transition-colors",
+        "relative flex cursor-grab flex-col gap-2 rounded-xl border px-4 py-3",
         "border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-raised)]",
-        "hover:border-[color:var(--color-border-default)]",
+        "transition-colors hover:border-[color:var(--color-border-default)]",
+        "focus-visible:outline-2 focus-visible:outline-[color:var(--color-border-accent)]",
+        isDragging && "cursor-grabbing opacity-60 shadow-lg",
       )}
     >
       <div className="flex items-start gap-3">
@@ -126,12 +150,7 @@ export function KanbanCard({
         >
           {initials}
         </span>
-        <button
-          type="button"
-          onClick={onOpen}
-          className="min-w-0 flex-1 text-left"
-          data-testid="kanban-card-open"
-        >
+        <div className="min-w-0 flex-1">
           <div className={cx("truncate text-body-sm font-medium", textColor.strong)}>
             {headline ?? "Account Executive"}
           </div>
@@ -142,7 +161,7 @@ export function KanbanCard({
               {meta}
             </div>
           ) : null}
-        </button>
+        </div>
       </div>
       {notesPreview ? (
         <p className={cx("line-clamp-2 text-body-xs", textColor.muted)}>{notesPreview}</p>
@@ -155,52 +174,111 @@ export function KanbanCard({
             no thread
           </span>
         )}
-        <div className="relative">
-          <button
-            type="button"
-            data-testid="kanban-move-trigger"
-            disabled={moveDisabled || moveTargets.length === 0}
-            onClick={() => setMenuOpen((v) => !v)}
-            className={cx(
-              "data-mono rounded-none border px-2 py-1 font-mono text-mono-xs uppercase",
-              "border-[color:var(--color-border-default)] transition-colors",
-              "hover:border-[color:var(--color-border-strong)] disabled:opacity-40",
-              textColor.muted,
-            )}
+        <span
+          aria-hidden
+          className={cx("data-mono font-mono text-mono-xs uppercase", textColor.muted)}
+        >
+          drag to move
+        </span>
+      </div>
+    </div>
+  );
+}
+
+// ────────────── ApplicantKanbanCard ──────────────
+
+export interface ApplicantKanbanCardProps {
+  /** Stable application id — the dnd-kit draggable id and the move subject. */
+  applicationId: string;
+  /** Candidate initials (anonymized). */
+  initials: string;
+  /** Primary label — the candidate headline. Carries the truncation testid. */
+  headline?: string | null;
+  /** Small meta line — segment, years, etc. */
+  meta?: string;
+  /** Application source — candidate_applied vs company_sourced. */
+  source?: "candidate_applied" | "company_sourced";
+  /** Called when the card is clicked. */
+  onOpen?: () => void;
+}
+
+/**
+ * A draggable applicant card for the per-job kanban (`/co/jobs/:id`). The whole
+ * card is the drag handle. Distinct from `KanbanCard` (the cycle-3 company-wide
+ * board): this card's subject is an `application` (`data-application-id`), and
+ * its primary label carries `data-testid="kanban-card-label"` so the kanban
+ * geometry verifier can confirm the label is not truncated.
+ */
+export function ApplicantKanbanCard({
+  applicationId,
+  initials,
+  headline,
+  meta,
+  source,
+  onOpen,
+}: ApplicantKanbanCardProps) {
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+    id: applicationId,
+  });
+  return (
+    <div
+      ref={setNodeRef}
+      data-testid="kanban-card"
+      data-application-id={applicationId}
+      style={{
+        transform: transform ? CSS.Translate.toString(transform) : undefined,
+        zIndex: isDragging ? 50 : undefined,
+      }}
+      {...attributes}
+      {...listeners}
+      onClick={onOpen}
+      className={cx(
+        "relative flex cursor-grab flex-col gap-2 rounded-xl border px-4 py-3",
+        "border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-raised)]",
+        "transition-colors hover:border-[color:var(--color-border-default)]",
+        "focus-visible:outline-2 focus-visible:outline-[color:var(--color-border-accent)]",
+        isDragging && "cursor-grabbing opacity-60 shadow-lg",
+      )}
+    >
+      <div className="flex items-start gap-3">
+        <span
+          aria-hidden
+          className={cx(
+            "flex h-9 w-9 shrink-0 items-center justify-center rounded-none border font-mono text-mono-sm font-semibold",
+            "border-[color:var(--color-border-accent)] bg-[color:var(--color-accent-soft)]",
+            textColor.accent,
+          )}
+        >
+          {initials}
+        </span>
+        <div className="min-w-0 flex-1">
+          <div
+            data-testid="kanban-card-label"
+            className={cx("line-clamp-2 text-body-sm font-medium", textColor.strong)}
           >
-            Move ▾
-          </button>
-          {menuOpen ? (
+            {headline ?? "Account Executive"}
+          </div>
+          {meta ? (
             <div
-              role="menu"
-              className={cx(
-                "absolute right-0 z-10 mt-1 w-44 rounded-xl border py-1",
-                "border-[color:var(--color-border-default)] bg-[color:var(--color-surface-raised)]",
-                "shadow-lg",
-              )}
+              className={cx("data-mono truncate font-mono text-mono-xs uppercase", textColor.muted)}
             >
-              {moveTargets.map((t) => (
-                <button
-                  key={t.id}
-                  type="button"
-                  role="menuitem"
-                  data-testid="kanban-move-option"
-                  onClick={() => {
-                    setMenuOpen(false);
-                    onMove(t.id);
-                  }}
-                  className={cx(
-                    "data-mono block w-full px-3 py-1.5 text-left font-mono text-mono-xs uppercase",
-                    "transition-colors hover:bg-[color:var(--color-accent-soft)]",
-                    textColor.default,
-                  )}
-                >
-                  {t.name}
-                </button>
-              ))}
+              {meta}
             </div>
           ) : null}
         </div>
+      </div>
+      <div className="flex items-center justify-between gap-2">
+        {source === "company_sourced" ? (
+          <Badge tone="info">SOURCED</Badge>
+        ) : (
+          <Badge tone="good">APPLIED</Badge>
+        )}
+        <span
+          aria-hidden
+          className={cx("data-mono font-mono text-mono-xs uppercase", textColor.muted)}
+        >
+          drag to move
+        </span>
       </div>
     </div>
   );
@@ -209,24 +287,36 @@ export function KanbanCard({
 // ────────────── KanbanColumn ──────────────
 
 export interface KanbanColumnProps {
+  /** Stable stage id — the dnd-kit droppable id and the move destination. */
+  stageId: string;
   header: ReactNode;
   children?: ReactNode;
   /** Shown when the column has no cards. */
   emptyLabel?: string;
 }
 
-export function KanbanColumn({ header, children, emptyLabel }: KanbanColumnProps) {
+/** One stage column — a dnd-kit drop target. A card dropped here moves to this stage. */
+export function KanbanColumn({ stageId, header, children, emptyLabel }: KanbanColumnProps) {
   const hasChildren = Array.isArray(children) ? children.length > 0 : Boolean(children);
+  const { setNodeRef, isOver } = useDroppable({ id: stageId });
   return (
     <div
+      ref={setNodeRef}
       data-testid="kanban-column"
+      data-pipeline-stage-id={stageId}
       className={cx(
-        "flex w-[280px] shrink-0 flex-col gap-3 rounded-xl border p-3",
+        // 300px — a readable column width. The board owns the horizontal
+        // scroll (KanbanBoard has overflow-x-auto), so columns are NEVER
+        // shrunk to fit a viewport — `shrink-0` holds each column at its full
+        // 300px and the track scrolls within the board's own region. A column
+        // width below ~280px truncates card labels (cycle-4 regression).
+        "flex w-[300px] shrink-0 flex-col gap-3 rounded-xl border p-3 transition-colors",
         "border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-raised-translucent)]",
+        isOver && "border-[color:var(--color-border-accent)] bg-[color:var(--color-accent-soft)]",
       )}
     >
       {header}
-      <div className="flex flex-col gap-2">
+      <div className="flex min-h-[4rem] flex-col gap-2">
         {hasChildren ? (
           children
         ) : (
@@ -251,18 +341,49 @@ export function KanbanColumn({ header, children, emptyLabel }: KanbanColumnProps
 export interface KanbanBoardProps {
   children?: ReactNode;
   "aria-label"?: string;
+  /**
+   * Called when a card is dropped on a column: the dragged candidate's id and
+   * the destination stage id. The consumer persists the stage change.
+   */
+  onMoveCandidate?: (candidateId: string, toStageId: string) => void;
 }
 
-/** Horizontal-scrolling column container. */
-export function KanbanBoard({ children, "aria-label": ariaLabel }: KanbanBoardProps) {
+/**
+ * Horizontal-scrolling column container + dnd-kit `DndContext`.
+ *
+ * The board owns its own horizontal scroll region (`overflow-x-auto`): the
+ * column track is as wide as its content, so every column is reachable by
+ * scrolling the board — the page never clips columns past the fold.
+ */
+export function KanbanBoard({
+  children,
+  "aria-label": ariaLabel,
+  onMoveCandidate,
+}: KanbanBoardProps) {
+  // PointerSensor with an 8px activation distance: a click (no movement) opens
+  // the card timeline; movement past 8px starts a drag. KeyboardSensor makes
+  // the board fully keyboard-operable.
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(KeyboardSensor),
+  );
+
+  function handleDragEnd(event: DragEndEvent) {
+    const candidateId = String(event.active.id);
+    const toStageId = event.over ? String(event.over.id) : null;
+    if (toStageId) onMoveCandidate?.(candidateId, toStageId);
+  }
+
   return (
-    <div
-      aria-label={ariaLabel ?? "Pipeline board"}
-      data-testid="kanban-board"
-      className="flex gap-4 overflow-x-auto pb-2"
-    >
-      {children}
-    </div>
+    <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
+      <div
+        aria-label={ariaLabel ?? "Pipeline board"}
+        data-testid="kanban-board"
+        className="flex w-full gap-3 overflow-x-auto pb-3"
+      >
+        {children}
+      </div>
+    </DndContext>
   );
 }
 

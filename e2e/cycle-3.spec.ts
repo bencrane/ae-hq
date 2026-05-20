@@ -46,8 +46,9 @@ test.describe("cycle 3 acceptance", () => {
     await expect(page.getByText(probe, { exact: false }).first()).toBeVisible({ timeout: 12_000 });
   });
 
-  // ----- pipeline: open the board and move a candidate -----
+  // ----- pipeline: open the board and move a candidate (drag-and-drop) -----
   test("pipeline — recruiter opens the board and moves a candidate", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
     await signIn(page, REC_EMAIL);
     await page.goto("/co/pipeline");
 
@@ -56,16 +57,38 @@ test.describe("cycle 3 acceptance", () => {
     const columns = page.locator("[data-testid='kanban-column']");
     expect(await columns.count()).toBeGreaterThanOrEqual(6);
 
-    // there is at least one candidate card
-    const firstCard = page.locator("[data-testid='kanban-card']").first();
-    await expect(firstCard).toBeVisible({ timeout: 10_000 });
+    // find a column with a card and a distinct destination column
+    const colCount = await columns.count();
+    let srcIdx = -1;
+    for (let i = 0; i < colCount; i++) {
+      if ((await columns.nth(i).locator("[data-testid='kanban-card']").count()) > 0) {
+        srcIdx = i;
+        break;
+      }
+    }
+    expect(srcIdx, "no kanban column has a card").toBeGreaterThanOrEqual(0);
+    const destIdx = srcIdx === 0 ? colCount - 1 : 0;
+    const card = columns.nth(srcIdx).locator("[data-testid='kanban-card']").first();
+    await expect(card).toBeVisible({ timeout: 10_000 });
 
-    // move it via the click-to-move menu
-    const moveTrigger = firstCard.locator("[data-testid='kanban-move-trigger']");
-    await moveTrigger.click();
-    const moveOption = page.locator("[data-testid='kanban-move-option']").first();
-    await expect(moveOption).toBeVisible({ timeout: 5_000 });
-    await moveOption.click();
+    // drag the card to the destination column (dnd-kit pointer gesture)
+    const cardBox = await card.boundingBox();
+    const destBox = await columns.nth(destIdx).boundingBox();
+    if (!cardBox || !destBox) throw new Error("could not measure kanban boxes");
+    const startX = cardBox.x + cardBox.width / 2;
+    const startY = cardBox.y + cardBox.height / 2;
+    const endX = destBox.x + destBox.width / 2;
+    const endY = destBox.y + Math.min(80, destBox.height / 2);
+    await page.mouse.move(startX, startY);
+    await page.mouse.down();
+    for (let s = 1; s <= 6; s++) {
+      await page.mouse.move(
+        startX + ((endX - startX) * s) / 6,
+        startY + ((endY - startY) * s) / 6,
+        { steps: 4 },
+      );
+    }
+    await page.mouse.up();
 
     // the board re-renders without error — board still present after the move
     await expect(page.locator("[data-testid='kanban-board']")).toBeVisible({ timeout: 10_000 });
@@ -77,7 +100,8 @@ test.describe("cycle 3 acceptance", () => {
     await page.goto("/co/pipeline");
     const firstCard = page.locator("[data-testid='kanban-card']").first();
     await expect(firstCard).toBeVisible({ timeout: 15_000 });
-    await firstCard.locator("[data-testid='kanban-card-open']").click();
+    // clicking the card (no drag movement) opens its timeline drawer
+    await firstCard.click();
     // the drawer (a dialog) opens with the timeline
     await expect(page.getByRole("dialog")).toBeVisible({ timeout: 10_000 });
   });

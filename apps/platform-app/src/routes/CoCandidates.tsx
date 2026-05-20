@@ -86,7 +86,7 @@ export function CoCandidates() {
                     <div className="font-medium">{c.headline ?? "AE"}</div>
                     <div className="data-mono mt-1 font-mono text-mono-xs uppercase text-[color:var(--color-text-muted)]">
                       {c.years_experience}yrs {"//"} {c.segment_focus ?? "—"} {"//"}{" "}
-                      {c.methodology.join(", ") || "—"}
+                      {c.sales_motion_label}
                     </div>
                     <div className="mt-2 flex flex-wrap gap-1.5">
                       {c.worked_at_companies.slice(0, 4).map((co) => (

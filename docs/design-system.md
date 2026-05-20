@@ -89,6 +89,29 @@ Every primitive is token-typed. Spacing/color/font-size props accept token names
 - `<Drawer>` — side panel (left/right)
 - `<Tooltip>` — hover/focus reveal
 
+#### Jobs
+
+- `<JobCard>` — a job card (portal variant); shows applied-state
+- `<CollectionRow>` — horizontal-scrolling strip of job cards
+- `<CollectionSection>` — a titled collection: heading + `CollectionRow`
+- `<FunnelSummary>` — compact per-stage applicant breakdown for the jobs overview
+- `<CompanyProfileHeader>` — company profile masthead (logo + firmographic facts)
+
+#### Pipeline
+
+- `<KanbanBoard>` — horizontal-scrolling kanban column container (owns drag context)
+- `<KanbanColumn>` — one stage column (a dnd-kit droppable)
+- `<KanbanCard>` — company-wide pipeline candidate card (cycle 3)
+- `<ApplicantKanbanCard>` — per-job application card (cycle 5); subject is an `application`
+- `<StageHeader>` — kanban column header (name + count + accent)
+- `<CandidateTimeline>` / `<TimelineEntry>` — per-candidate activity feed
+
+#### Consent & matchmaking
+
+- `<Toggle>` — accessible on/off switch (label + description); the `auto_match` / `discoverable` settings
+- `<MatchStatusBadge>` — status pill for a `matches` row (resolved / pending_ae / pending_company / declined / expired)
+- `<AnonymousCandidateCard>` — anonymized AE card for the matchmaking discovery surface (initials, never a real name)
+
 #### Motion
 
 - `<AppearOnMount>` — opacity 0 → 1
@@ -145,7 +168,7 @@ If a one-off variant is genuinely needed, use the primitive's `unsafe_className`
 
 | Variant | Width | Used by |
 |---------|-------|---------|
-| `narrow` | 48rem (768px) | SignIn, SignUp, MeProfile, MeIntent, NotFound, CoCompany |
+| `narrow` | 48rem (768px) | SignIn, SignUp, MeProfile, MeIntent, NotFound, CoCompany, CoMatchCriteria |
 | `default` | 72rem (1152px) | Me, MeCredentials, MeApprovals, Co, CoCandidateDetail, CoAts, CoBilling, JobDetail, CompanyPublic |
-| `wide` | 84rem (1344px) | Home, CoCandidates |
+| `wide` | 84rem (1344px) | Home, CoCandidates, CoDiscover |
 | `full` | none | reserved for cycle 3 (messaging spine) |

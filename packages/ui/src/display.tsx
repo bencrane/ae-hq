@@ -3,7 +3,13 @@
  * Spinner, SectionLabel, Button.
  */
 
-import { type ButtonHTMLAttributes, type HTMLAttributes, type ReactNode, forwardRef } from "react";
+import {
+  type ButtonHTMLAttributes,
+  type HTMLAttributes,
+  type ReactNode,
+  forwardRef,
+  useState,
+} from "react";
 import { cx, textColor } from "./utils";
 
 // ────────────── Card ──────────────
@@ -139,6 +145,58 @@ export function Avatar({ src, alt, initials, size = "md" }: AvatarProps) {
       )}
     >
       {(initials ?? "AE").slice(0, 2).toUpperCase()}
+    </div>
+  );
+}
+
+// ────────────── CompanyLogo ──────────────
+
+export interface CompanyLogoProps {
+  /** Company name — drives the monogram fallback initials. */
+  name: string;
+  /** Logo URL. May be absent, or present-but-unreachable (a 404). */
+  logoUrl?: string | null;
+  size?: "sm" | "md" | "lg";
+}
+
+/**
+ * A company logo with a monogram fallback.
+ *
+ * Renders the logo image when a URL is present AND it loads. If the URL is
+ * absent — or present but fails to load (a dead logo-CDN entry) — it falls
+ * back to a monogram tile (the company's initials). Crucially, on load
+ * failure the broken `<img>` is removed from the DOM entirely, so a
+ * work-history row never shows a broken-image box.
+ */
+export function CompanyLogo({ name, logoUrl, size = "md" }: CompanyLogoProps) {
+  const [failed, setFailed] = useState(false);
+  const initials = name.slice(0, 2).toUpperCase();
+  if (logoUrl && !failed) {
+    return (
+      <img
+        src={logoUrl}
+        alt={`${name} logo`}
+        onError={() => setFailed(true)}
+        className={cx(
+          "shrink-0 rounded-none border bg-[color:var(--color-surface-base)] object-contain",
+          "border-[color:var(--color-border-subtle)]",
+          avatarSize[size],
+        )}
+      />
+    );
+  }
+  return (
+    <div
+      role="img"
+      aria-label={`${name} logo`}
+      className={cx(
+        "flex shrink-0 items-center justify-center rounded-none border font-mono font-semibold",
+        "border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-raised)]",
+        textColor.muted,
+        avatarSize[size],
+      )}
+    >
+      {initials}
     </div>
   );
 }

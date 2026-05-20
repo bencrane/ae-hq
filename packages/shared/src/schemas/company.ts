@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { sizeRangeSchema, stageSchema } from "./common";
+import { salesMotionSchema, sizeRangeSchema, stageSchema } from "./common";
 
 export const companySchema = z.object({
   id: z.string().uuid(),
@@ -13,6 +13,11 @@ export const companySchema = z.object({
   description: z.string().nullable(),
   is_claimed: z.boolean(),
   is_subscribed: z.boolean(),
+  // Cycle-4 firmographics (additive — migration 0003).
+  sales_motion: salesMotionSchema.nullable(),
+  founded_year: z.number().int().nullable(),
+  investors: z.array(z.string()).default([]),
+  employee_count: z.number().int().nullable(),
 });
 export type Company = z.infer<typeof companySchema>;
 

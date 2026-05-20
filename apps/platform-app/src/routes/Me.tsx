@@ -9,7 +9,7 @@ import {
   CardBody,
   CardHeader,
   Badge,
-  Stat,
+  CompanyLogo,
   Grid,
   Stack,
   SectionLabel,
@@ -27,7 +27,6 @@ type HistShape = {
     company: { name: string; logo_url: string | null };
   }>;
 };
-type CredShape = { credentials: Array<{ id: string }> };
 
 export function Me() {
   const meQ = useQuery({
@@ -46,14 +45,6 @@ export function Me() {
       return (await res.json()) as unknown as HistShape;
     },
   });
-  const credQ = useQuery({
-    queryKey: ["me", "credentials"],
-    queryFn: async (): Promise<CredShape> => {
-      const res = await api.api.v1.credentials.$get();
-      if (!res.ok) throw new Error("failed");
-      return (await res.json()) as unknown as CredShape;
-    },
-  });
 
   return (
     <Page>
@@ -63,7 +54,7 @@ export function Me() {
         title={meQ.data?.profile?.name ?? "Candidate"}
       />
 
-      <Grid cols={1} mdCols={3} gap="6">
+      <Grid cols={1} mdCols={2} gap="6">
         <Card>
           <CardHeader>
             <SectionLabel index={2}>PROFILE</SectionLabel>
@@ -91,36 +82,15 @@ export function Me() {
             </Link>
           </CardBody>
         </Card>
-        <Card>
-          <CardHeader>
-            <SectionLabel index={4}>CREDENTIALS</SectionLabel>
-          </CardHeader>
-          <CardBody>
-            <Stat
-              label="VERIFIED"
-              value={credQ.data?.credentials?.length ?? 0}
-            />
-            <Link
-              to="/me/credentials"
-              className="data-mono mt-4 inline-block font-mono text-mono-xs uppercase text-[color:var(--color-text-accent)] hover:text-[color:var(--color-accent-primaryHover)]"
-            >
-              Manage →
-            </Link>
-          </CardBody>
-        </Card>
       </Grid>
 
-      <PageSection section="05" title="Track record">
+      <PageSection section="04" title="Track record">
         <Stack gap="3">
           {(histQ.data?.work_history ?? []).map((h) => (
             <Card key={h.id}>
               <CardBody>
                 <div className="flex items-center gap-4">
-                  {h.company.logo_url ? (
-                    <img src={h.company.logo_url} alt="" className="h-10 w-10 rounded" />
-                  ) : (
-                    <div className="h-10 w-10 rounded bg-[color:var(--color-surface-raised)]" />
-                  )}
+                  <CompanyLogo name={h.company.name} logoUrl={h.company.logo_url} size="md" />
                   <div className="flex-1">
                     <div className="font-medium">
                       {h.title} {"//"} {h.company.name}

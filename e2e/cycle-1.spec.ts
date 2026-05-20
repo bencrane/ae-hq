@@ -91,7 +91,11 @@ test.describe("cycle 1 acceptance", () => {
     // approvals — accept the pending unlock seeded for stripe
     await page.goto("/me/approvals");
     await expect(page.getByText(/Stripe/i).first()).toBeVisible({ timeout: 10_000 });
-    const acceptBtn = page.locator('button:has-text("Accept")').first();
+    // cycle 6 reworked /me/approvals into two sections (consent-engine match
+    // requests + the legacy unlock requests). Scope the accept to a legacy
+    // unlock-request card via its `accept-<id>` testid so this targets the
+    // seeded Stripe unlock specifically, not a pending_ae match.
+    const acceptBtn = page.locator('[data-testid^="accept-"]').first();
     if (await acceptBtn.isVisible()) {
       await acceptBtn.click();
       await expect(page.getByText(/ACCEPTED/i)).toBeVisible({ timeout: 10_000 });

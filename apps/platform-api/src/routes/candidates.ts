@@ -7,11 +7,13 @@ import {
   workHistoryCreateSchema,
   workHistoryPatchSchema,
   intentSignalPutSchema,
+  aeExpressInterestSchema,
 } from "@ae-hq/shared";
 import { supabaseAdmin } from "../db";
 import type { Variables } from "../middleware";
 import { ensureConversation } from "./conversations";
 import { ensurePipelineCandidate } from "./pipeline";
+import { runConsentEngine } from "../consent-engine";
 
 export const candidatesRoutes = new Hono<{ Variables: Variables }>()
   // POST /api/v1/candidates/onboard
@@ -138,6 +140,13 @@ export const candidatesRoutes = new Hono<{ Variables: Variables }>()
     return c.json({ intent: data });
   })
   // GET /api/v1/candidates/me/approvals
+  // Match-aware (cycle 6): the AE approvals surface shows BOTH the cycle-1
+  // `unlock_requests` (the legacy payment-artifact prompts) AND `pending_ae`
+  // `matches` (the consent-engine prompts — the one surviving manual
+  // approval). The two run in parallel: `unlock_requests` is the cycle-1
+  // payment record, `matches` is the consent spine. `match_approvals` carries
+  // the pending_ae matches; `approvals` keeps the unlock_requests for
+  // backward compatibility.
   .get("/me/approvals", async (c) => {
     const userId = c.get("userId");
     const { data, error } = await supabaseAdmin
@@ -146,12 +155,101 @@ export const candidatesRoutes = new Hono<{ Variables: Variables }>()
       .eq("candidate_id", userId)
       .order("created_at", { ascending: false });
     if (error) return c.json({ error: { code: "db_error", message: error.message } }, 500);
+
+    // pending_ae matches — the consent-engine prompts on the AE side.
+    const { data: matchRows, error: mErr } = await supabaseAdmin
+      .from("matches")
+      .select("*, companies!inner(id, slug, name, logo_url)")
+      .eq("candidate_id", userId)
+      .eq("status", "pending_ae")
+      .order("created_at", { ascending: false });
+    if (mErr) return c.json({ error: { code: "db_error", message: mErr.message } }, 500);
+
     return c.json({
       approvals: (data ?? []).map((row) => {
         const { companies, ...rest } = row as Record<string, unknown> & { companies: unknown };
         return { ...rest, company: companies };
       }),
+      match_approvals: (matchRows ?? []).map((row) => {
+        const { companies, ...rest } = row as Record<string, unknown> & { companies: unknown };
+        return { ...rest, company: companies };
+      }),
     });
+  })
+  // GET /api/v1/candidates/me/applications — the candidate's own applications,
+  // each joined with its job + company + the stage name (cycle 5).
+  .get("/me/applications", async (c) => {
+    const userId = c.get("userId");
+    const { data, error } = await supabaseAdmin
+      .from("applications")
+      .select(
+        "*, pipeline_stages!inner(name), " +
+          "jobs!inner(id, title, segment, location, is_remote, ote_min, ote_max, " +
+          "companies!inner(id, slug, name, logo_url))",
+      )
+      .eq("candidate_id", userId)
+      .order("created_at", { ascending: false });
+    if (error) return c.json({ error: { code: "db_error", message: error.message } }, 500);
+    type Row = Record<string, unknown> & {
+      pipeline_stages: { name: string };
+      jobs: Record<string, unknown> & { companies: unknown };
+    };
+    return c.json({
+      applications: ((data ?? []) as unknown as Row[]).map((row) => {
+        const { pipeline_stages, jobs, ...rest } = row;
+        const { companies, ...job } = jobs;
+        return { ...rest, stage_name: pipeline_stages.name, job: { ...job, company: companies } };
+      }),
+    });
+  })
+  // POST /api/v1/candidates/me/express-interest — AE-initiated interest.
+  // The AE expresses interest toward a company (optionally a specific job).
+  // This runs the consent engine: the AE's consent is explicit (they acted);
+  // the company's consent is standing iff the AE satisfies the company's
+  // match-criteria. Both consented → the match resolves and a conversation
+  // opens immediately, no approval step. Idempotent — a duplicate
+  // express-interest does not create a second match or a second conversation.
+  .post("/me/express-interest", zValidator("json", aeExpressInterestSchema), async (c) => {
+    const userId = c.get("userId");
+    const { company_id, job_id } = c.req.valid("json");
+
+    // the caller must be a candidate.
+    const { data: cand } = await supabaseAdmin
+      .from("candidates")
+      .select("user_id")
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (!cand) {
+      return c.json({ error: { code: "forbidden", message: "not a candidate" } }, 403);
+    }
+    // the company must exist.
+    const { data: company } = await supabaseAdmin
+      .from("companies")
+      .select("id")
+      .eq("id", company_id)
+      .maybeSingle();
+    if (!company) {
+      return c.json({ error: { code: "not_found", message: "company not found" } }, 404);
+    }
+
+    try {
+      const result = await runConsentEngine({
+        origin: "ae_initiated",
+        companyId: company_id,
+        candidateId: userId,
+        jobId: job_id ?? null,
+        actorUserId: userId,
+      });
+      return c.json({
+        match: result.match,
+        resolved: result.match.status === "resolved",
+      });
+    } catch (e) {
+      return c.json(
+        { error: { code: "consent_error", message: (e as Error).message } },
+        500,
+      );
+    }
   })
   // POST /api/v1/candidates/me/approvals/:id/accept
   .post(

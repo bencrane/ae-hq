@@ -64,6 +64,7 @@ export {
   CardBody,
   Badge,
   Avatar,
+  CompanyLogo,
   Stat,
   KVTable,
   DataTable,
@@ -77,6 +78,7 @@ export {
   type BadgeProps,
   type BadgeTone,
   type AvatarProps,
+  type CompanyLogoProps,
   type StatProps,
   type KVTableProps,
   type DataTableProps,
@@ -157,21 +159,50 @@ export {
   type DataDropCardProps,
 } from "./feed";
 
+// Jobs (cycle 5)
+export {
+  JobCard,
+  CollectionRow,
+  CollectionSection,
+  FunnelSummary,
+  CompanyProfileHeader,
+  type JobCardProps,
+  type CollectionRowProps,
+  type CollectionSectionProps,
+  type FunnelSummaryProps,
+  type FunnelStageDatum,
+  type CompanyProfileHeaderProps,
+  type CompanyProfileFact,
+} from "./jobs";
+
 // Markdown
 export { Markdown } from "./markdown";
+
+// Consent & matchmaking (cycle 6)
+export {
+  Toggle,
+  MatchStatusBadge,
+  AnonymousCandidateCard,
+  type ToggleProps,
+  type MatchStatusBadgeProps,
+  type MatchStatus,
+  type AnonymousCandidateCardProps,
+  type AnonymousCandidateCardWorkedAt,
+} from "./consent";
 
 // Pipeline
 export {
   KanbanBoard,
   KanbanColumn,
   KanbanCard,
+  ApplicantKanbanCard,
   StageHeader,
   CandidateTimeline,
   TimelineEntry,
   type KanbanBoardProps,
   type KanbanColumnProps,
   type KanbanCardProps,
-  type KanbanStageOption,
+  type ApplicantKanbanCardProps,
   type StageHeaderProps,
   type CandidateTimelineProps,
   type TimelineEntryProps,

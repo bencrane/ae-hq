@@ -4,6 +4,7 @@ import {
   LayoutDashboard,
   Users,
   Building2,
+  Briefcase,
   Cable,
   CreditCard,
   MessagesSquare,
@@ -11,9 +12,16 @@ import {
   Newspaper,
   Bell,
   LogOut,
+  Radar,
+  SlidersHorizontal,
 } from "lucide-react";
 import { useAuth } from "../lib/auth";
 import { useNotifications } from "../lib/use-notifications";
+
+// Section divider — ONE treatment, shared by every rule in both portal sidebars.
+// 1px, zinc-900, full-bleed (no inset). The `data-divider` tag lets the e2e
+// geometry verifier confirm every divider is identical (criterion 8).
+const DIVIDER = "border-zinc-900";
 
 function ContentFallback() {
   return (
@@ -34,7 +42,10 @@ type NavItem = {
 
 const NAV: ReadonlyArray<NavItem> = [
   { to: "/co", end: true, label: "Dashboard", icon: LayoutDashboard },
+  { to: "/co/jobs", label: "Job postings", icon: Briefcase },
+  { to: "/co/discover", label: "Discover", icon: Radar },
   { to: "/co/candidates", label: "Candidates", icon: Users },
+  { to: "/co/match-criteria", label: "Match criteria", icon: SlidersHorizontal },
   { to: "/co/pipeline", label: "Pipeline", icon: KanbanSquare },
   { to: "/inbox", label: "Messages", icon: MessagesSquare },
   { to: "/insights", label: "Insights", icon: Newspaper },
@@ -56,24 +67,33 @@ export function CompanyLayout() {
 
   return (
     <div className="flex min-h-screen bg-zinc-950 text-zinc-100">
-      <aside className="sticky top-0 flex h-screen w-[260px] shrink-0 flex-col border-r border-zinc-900 bg-zinc-950">
+      <aside
+        data-testid="portal-sidebar"
+        className="sticky top-0 flex h-screen w-[260px] shrink-0 flex-col border-r border-zinc-900 bg-zinc-950"
+      >
         {/* Wordmark */}
-        <Link to="/" className="flex items-baseline gap-2 border-b border-zinc-900 px-6 py-5">
+        <Link
+          to="/"
+          data-divider="wordmark"
+          className={`flex items-baseline gap-2 border-b ${DIVIDER} px-6 py-5`}
+        >
           <span className="font-display text-base font-semibold tracking-tight">AccountExecutive</span>
           <span className="data-mono font-mono text-[9px] uppercase tracking-[0.2em] text-emerald-400">.com</span>
         </Link>
 
-        {/* Identity */}
-        <div className="border-b border-zinc-900 px-6 py-4">
-          <div className="data-mono mb-2 font-mono text-[10px] uppercase tracking-[0.2em] text-zinc-500">
-            01 // Hiring at
-          </div>
+        {/* Identity — avatar + name only (no numbered eyebrow on chrome) */}
+        <div data-divider="identity" className={`border-b ${DIVIDER} px-6 py-4`}>
           <div className="flex items-center gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-none border border-emerald-500/40 bg-emerald-500/10 font-mono text-xs font-semibold text-emerald-300">
               {initials}
             </div>
             <div className="min-w-0">
-              <div className="truncate text-sm font-medium text-zinc-100">{companyDisplay}</div>
+              <div
+                data-testid="sidebar-identity-name"
+                className="truncate text-sm font-medium text-zinc-100"
+              >
+                {companyDisplay}
+              </div>
               <div className="truncate font-mono text-[11px] text-emerald-400">Active subscription</div>
             </div>
           </div>
@@ -82,7 +102,7 @@ export function CompanyLayout() {
         {/* Primary nav */}
         <nav className="flex-1 overflow-y-auto px-3 py-4">
           <div className="data-mono mb-2 px-3 font-mono text-[10px] uppercase tracking-[0.2em] text-zinc-500">
-            02 // Workspace
+            Workspace
           </div>
           <ul className="space-y-px">
             {NAV.map(({ to, end, label, icon: Icon }) => (
@@ -107,7 +127,7 @@ export function CompanyLayout() {
         </nav>
 
         {/* Footer */}
-        <div className="border-t border-zinc-900 px-6 py-4">
+        <div data-divider="footer" className={`border-t ${DIVIDER} px-6 py-4`}>
           <div className="mb-3 flex items-center gap-2">
             <span className="relative flex h-1.5 w-1.5">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60" />

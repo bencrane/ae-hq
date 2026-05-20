@@ -6,6 +6,9 @@
 import { createClient } from "@supabase/supabase-js";
 import postgres from "postgres";
 import { seedCycle3 } from "./cycle-3";
+import { applyCompanyFirmographics } from "./cycle-4";
+import { seedCycle5 } from "./cycle-5";
+import { seedCycle6 } from "./cycle-6";
 
 const SUPABASE_URL = process.env.AE_SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL;
 const SERVICE_ROLE = process.env.AE_SUPABASE_SERVICE_ROLE_KEY;
@@ -110,7 +113,9 @@ async function main() {
   // companies cascade does not reach it; messages/pipeline_activity have no natural
   // unique key, so truncate-and-reseed is the idempotency strategy for the new tables.
   await sql`truncate table
-    public.pipeline_activity, public.pipeline_candidates, public.pipeline_stages,
+    public.matches, public.company_match_criteria,
+    public.pipeline_activity, public.applications,
+    public.pipeline_candidates, public.pipeline_stages,
     public.messages, public.conversations, public.articles,
     public.notifications, public.unlock_requests, public.verified_credentials,
     public.credential_uploads, public.intent_signals, public.ae_work_history,
@@ -137,10 +142,20 @@ async function main() {
   }
   console.log(`  seeded ${companyIds.size} companies`);
 
+  // ----- cycle 4: company firmographics (sales motion, founding, investors, headcount) -----
+  // Runs right after the companies insert so every company carries firmographic
+  // data before the candidate-side sales-motion derivation can read it.
+  const firmo = await applyCompanyFirmographics(sql);
+  console.log(`  seeded firmographics for ${firmo.updated} companies`);
+
   // ----- jobs (50 across companies) -----
+  // Stripe is the test recruiter's company and must carry >= 4 postings (the
+  // per-job dashboard / pipeline surfaces are exercised against it) — give it a
+  // fixed 5. Stripe is first in COMPANIES, so the jobCount<50 cap never starves
+  // it. Every other company keeps its random 1-4.
   let jobCount = 0;
   for (const c of COMPANIES) {
-    const numJobs = randInt(1, 4);
+    const numJobs = c.slug === "stripe" ? 5 : randInt(1, 4);
     for (let i = 0; i < numJobs && jobCount < 50; i++) {
       const segment = rand(SEGMENTS);
       const oteMin = segment === "SMB" ? 120_000 : segment === "MidMarket" ? 180_000 : segment === "Enterprise" ? 240_000 : 300_000;
@@ -388,6 +403,37 @@ async function main() {
   console.log(
     `  seeded cycle-3: articles=${c3.articles} stages=${c3.stages} conversations=${c3.conversations} ` +
       `messages=${c3.messages} pipeline_candidates=${c3.pipelineCandidates} activity=${c3.activity}`,
+  );
+
+  // ----- cycle 5: applications (per-job funnels) -----
+  // Runs after cycle-3 so the pipeline_stages it reads already exist.
+  const c5 = await seedCycle5({
+    sql,
+    stripeCompanyId: companyIds.get("stripe")!,
+    testCandidateId: candidateId,
+    recruiterId,
+    anonCandidateIds,
+  });
+  console.log(
+    `  seeded cycle-5: applications=${c5.applications} activity=${c5.activity} ` +
+      `stages_backfilled=${c5.stagesBackfilled}`,
+  );
+
+  // ----- cycle 6: match criteria, extended intent, ~30 matches -----
+  // Runs last — it UPDATEs intent_signals rows the cycle-1 loop inserted and
+  // creates conversation rows for resolved matches (conversations already
+  // exist from cycle-3, but a resolved match for a new pair needs its own).
+  const c6 = await seedCycle6({
+    sql,
+    companyIds,
+    stripeCompanyId: companyIds.get("stripe")!,
+    testCandidateId: candidateId,
+    recruiterId,
+    anonCandidateIds,
+  });
+  console.log(
+    `  seeded cycle-6: match_criteria=${c6.matchCriteria} intent_extended=${c6.intentExtended} ` +
+      `matches=${c6.matches} conversations=${c6.conversations}`,
   );
 
   // ----- summary -----

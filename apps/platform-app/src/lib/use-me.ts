@@ -34,25 +34,6 @@ export function initialsOf(name: string): string {
   );
 }
 
-export function useMe(enabled: boolean) {
-  const [data, setData] = useState<MeResponse | null>(null);
-  useEffect(() => {
-    if (!enabled) return;
-    let alive = true;
-    void jsonOf<MeResponse>(api.api.v1.me.$get())
-      .then((r) => {
-        if (alive) setData(r);
-      })
-      .catch(() => {
-        if (alive) setData(null);
-      });
-    return () => {
-      alive = false;
-    };
-  }, [enabled]);
-  return data;
-}
-
 export function useCompanyContext(enabled: boolean) {
   const [data, setData] = useState<CompanyContext | null>(null);
   useEffect(() => {

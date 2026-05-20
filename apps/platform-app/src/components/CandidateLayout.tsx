@@ -13,7 +13,13 @@ import {
   LogOut,
 } from "lucide-react";
 import { useAuth } from "../lib/auth";
+import { useIdentity } from "../lib/identity";
 import { useNotifications } from "../lib/use-notifications";
+
+// Section divider — ONE treatment, shared by every rule in both portal sidebars.
+// 1px, zinc-900, full-bleed (no inset). The `data-divider` tag lets the e2e
+// geometry verifier confirm every divider is identical (criterion 8).
+const DIVIDER = "border-zinc-900";
 
 function ContentFallback() {
   return (
@@ -34,6 +40,7 @@ type NavItem = {
 
 const NAV: ReadonlyArray<NavItem> = [
   { to: "/me", end: true, label: "Dashboard", icon: LayoutDashboard },
+  { to: "/me/jobs", label: "Browse jobs", icon: Briefcase },
   { to: "/me/profile", label: "Profile", icon: UserCircle2 },
   { to: "/me/intent", label: "Intent", icon: Compass },
   { to: "/me/credentials", label: "Credentials", icon: BadgeCheck },
@@ -42,32 +49,54 @@ const NAV: ReadonlyArray<NavItem> = [
   { to: "/insights", label: "Insights", icon: Newspaper },
 ];
 
+function initialsOf(name: string): string {
+  return (
+    name
+      .split(/\s+/)
+      .map((p) => p[0]?.toUpperCase() ?? "")
+      .join("")
+      .slice(0, 2) || "AE"
+  );
+}
+
 export function CandidateLayout() {
   const { session, signOut } = useAuth();
+  const { identity } = useIdentity();
   const { unreadCount } = useNotifications(session?.user?.id);
-  const displayName = "Account Executive";
-  const initials = "AE";
+  // The AE's real name comes from their resolved profile — never a hardcoded
+  // placeholder. Falls back to the email local-part only before identity loads.
+  const displayName = identity?.profile.name?.trim() || session?.user?.email?.split("@")[0] || "";
+  const initials = initialsOf(displayName);
 
   return (
     <div className="flex min-h-screen bg-zinc-950 text-zinc-100">
-      <aside className="sticky top-0 flex h-screen w-[260px] shrink-0 flex-col border-r border-zinc-900 bg-zinc-950">
+      <aside
+        data-testid="portal-sidebar"
+        className="sticky top-0 flex h-screen w-[260px] shrink-0 flex-col border-r border-zinc-900 bg-zinc-950"
+      >
         {/* Wordmark */}
-        <Link to="/" className="flex items-baseline gap-2 border-b border-zinc-900 px-6 py-5">
+        <Link
+          to="/"
+          data-divider="wordmark"
+          className={`flex items-baseline gap-2 border-b ${DIVIDER} px-6 py-5`}
+        >
           <span className="font-display text-base font-semibold tracking-tight">AccountExecutive</span>
           <span className="data-mono font-mono text-[9px] uppercase tracking-[0.2em] text-emerald-400">.com</span>
         </Link>
 
-        {/* Identity */}
-        <div className="border-b border-zinc-900 px-6 py-4">
-          <div className="data-mono mb-2 font-mono text-[10px] uppercase tracking-[0.2em] text-zinc-500">
-            01 // Signed in as
-          </div>
+        {/* Identity — avatar + real name only (no numbered eyebrow on chrome) */}
+        <div data-divider="identity" className={`border-b ${DIVIDER} px-6 py-4`}>
           <div className="flex items-center gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-none border border-emerald-500/40 bg-emerald-500/10 font-mono text-xs font-semibold text-emerald-300">
               {initials}
             </div>
             <div className="min-w-0">
-              <div className="truncate text-sm font-medium text-zinc-100">{displayName}</div>
+              <div
+                data-testid="sidebar-identity-name"
+                className="truncate text-sm font-medium text-zinc-100"
+              >
+                {displayName}
+              </div>
             </div>
           </div>
         </div>
@@ -75,7 +104,7 @@ export function CandidateLayout() {
         {/* Primary nav */}
         <nav className="flex-1 overflow-y-auto px-3 py-4">
           <div className="data-mono mb-2 px-3 font-mono text-[10px] uppercase tracking-[0.2em] text-zinc-500">
-            02 // Workspace
+            Workspace
           </div>
           <ul className="space-y-px">
             {NAV.map(({ to, end, label, icon: Icon }) => (
@@ -102,25 +131,10 @@ export function CandidateLayout() {
               </li>
             ))}
           </ul>
-
-          <div className="data-mono mb-2 mt-6 px-3 font-mono text-[10px] uppercase tracking-[0.2em] text-zinc-500">
-            03 // Discover
-          </div>
-          <ul className="space-y-px">
-            <li>
-              <NavLink
-                to="/"
-                className="group flex items-center gap-3 border-l-2 border-transparent px-3 py-2 text-sm text-zinc-400 transition-colors hover:border-zinc-700 hover:bg-zinc-900/40 hover:text-zinc-100"
-              >
-                <Briefcase className="h-4 w-4 shrink-0" aria-hidden />
-                <span>Browse jobs</span>
-              </NavLink>
-            </li>
-          </ul>
         </nav>
 
         {/* Footer: status pill + sign out */}
-        <div className="border-t border-zinc-900 px-6 py-4">
+        <div data-divider="footer" className={`border-t ${DIVIDER} px-6 py-4`}>
           <div className="mb-3 flex items-center gap-2">
             <span className="relative flex h-1.5 w-1.5">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60" />

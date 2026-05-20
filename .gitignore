@@ -1,5 +1,6 @@
 node_modules
 dist
+.vite
 storybook-static
 .turbo
 *.log
@@ -12,3 +13,4 @@ e2e/.auth
 .next
 *.tsbuildinfo
 coverage
+.gstack/

@@ -6,6 +6,9 @@ export const notificationKindSchema = z.enum([
   "unlock_declined",
   "credential_verified",
   "subscription_updated",
+  // cycle-6 — the consent engine fires these.
+  "match_pending",
+  "match_resolved",
 ]);
 export type NotificationKind = z.infer<typeof notificationKindSchema>;
 
