@@ -9,6 +9,7 @@ import { BrowserRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { App } from "./App";
 import { AuthProvider } from "./lib/auth";
+import { IdentityProvider } from "./lib/identity";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -28,7 +29,9 @@ ReactDOM.createRoot(root).render(
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <AuthProvider>
-          <App />
+          <IdentityProvider>
+            <App />
+          </IdentityProvider>
         </AuthProvider>
       </BrowserRouter>
     </QueryClientProvider>

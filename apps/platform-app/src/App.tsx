@@ -4,7 +4,7 @@ import { TopNav } from "./components/TopNav";
 import { CandidateLayout } from "./components/CandidateLayout";
 import { CompanyLayout } from "./components/CompanyLayout";
 import { useAuth } from "./lib/auth";
-import { useMe } from "./lib/use-me";
+import { useIdentity } from "./lib/identity";
 
 const Home = lazy(() => import("./routes/Home").then((m) => ({ default: m.Home })));
 const JobDetail = lazy(() => import("./routes/JobDetail").then((m) => ({ default: m.JobDetail })));
@@ -58,24 +58,27 @@ function PublicShell() {
   );
 }
 
-function CandidateShell() {
-  return <CandidateLayout />;
-}
-
-function CompanyShell() {
-  return <CompanyLayout />;
-}
-
 /**
- * Shell for routes shared by both portals (/inbox, /insights). It renders the
- * sidebar layout that matches the signed-in user's kind — CandidateLayout for
- * candidates, CompanyLayout for company members — so a shared route still gets
- * the right chrome for whoever is viewing it.
+ * The ONE persistent layout for every authed portal route (`/me/*`, `/co/*`,
+ * `/inbox`, `/insights`).
+ *
+ * The signed-in user's `kind` is resolved once, app-level, by `IdentityProvider`
+ * — so this component renders a single, stable sidebar layout (CandidateLayout
+ * for candidates, CompanyLayout for company members) that mounts once and stays
+ * mounted across every in-portal navigation. Because all portal routes are
+ * children of ONE `<Route element={<PortalLayout/>}>`, React Router never
+ * unmounts the layout when navigation crosses between `/co`, `/inbox`,
+ * `/insights`, etc. — only the `<Outlet/>` content swaps. That continuity is the
+ * navigation-flicker fix: the sidebar `<aside>` is never replaced.
+ *
+ * The `<PageFallback/>` here only ever shows on the very first app load, before
+ * the identity query resolves — never during navigation (identity is cached for
+ * the whole session).
  */
-function SharedPortalShell() {
-  const me = useMe(true);
-  if (!me) return <PageFallback />;
-  return me.profile.kind === "company_member" ? <CompanyLayout /> : <CandidateLayout />;
+function PortalLayout() {
+  const { identity, loading } = useIdentity();
+  if (loading) return <PageFallback />;
+  return identity?.profile.kind === "company_member" ? <CompanyLayout /> : <CandidateLayout />;
 }
 
 export function App() {
@@ -92,19 +95,18 @@ export function App() {
         <Route path="*" element={<NotFound />} />
       </Route>
 
-      {/* Authed portals — left sidebar */}
+      {/* Authed portal — ONE persistent sidebar layout wraps every route here,
+          so portal navigation never unmounts the sidebar (flicker fix). */}
       <Route element={<Protected />}>
-        {/* Candidate portal */}
-        <Route element={<CandidateShell />}>
+        <Route element={<PortalLayout />}>
+          {/* Candidate portal */}
           <Route path="/me" element={<Me />} />
           <Route path="/me/profile" element={<MeProfile />} />
           <Route path="/me/intent" element={<MeIntent />} />
           <Route path="/me/credentials" element={<MeCredentials />} />
           <Route path="/me/approvals" element={<MeApprovals />} />
-        </Route>
 
-        {/* Company portal */}
-        <Route element={<CompanyShell />}>
+          {/* Company portal */}
           <Route path="/co" element={<Co />} />
           <Route path="/co/candidates" element={<CoCandidates />} />
           <Route path="/co/candidates/:id" element={<CoCandidateDetail />} />
@@ -112,10 +114,8 @@ export function App() {
           <Route path="/co/ats" element={<CoAts />} />
           <Route path="/co/billing" element={<CoBilling />} />
           <Route path="/co/pipeline" element={<CoPipeline />} />
-        </Route>
 
-        {/* Shared portal routes — shell picks the layout by user kind */}
-        <Route element={<SharedPortalShell />}>
+          {/* Shared portal routes */}
           <Route path="/inbox" element={<Inbox />} />
           <Route path="/inbox/:conversationId" element={<Inbox />} />
           <Route path="/insights" element={<Insights />} />
