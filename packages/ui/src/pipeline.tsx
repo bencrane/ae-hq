@@ -185,6 +185,105 @@ export function KanbanCard({
   );
 }
 
+// ────────────── ApplicantKanbanCard ──────────────
+
+export interface ApplicantKanbanCardProps {
+  /** Stable application id — the dnd-kit draggable id and the move subject. */
+  applicationId: string;
+  /** Candidate initials (anonymized). */
+  initials: string;
+  /** Primary label — the candidate headline. Carries the truncation testid. */
+  headline?: string | null;
+  /** Small meta line — segment, years, etc. */
+  meta?: string;
+  /** Application source — candidate_applied vs company_sourced. */
+  source?: "candidate_applied" | "company_sourced";
+  /** Called when the card is clicked. */
+  onOpen?: () => void;
+}
+
+/**
+ * A draggable applicant card for the per-job kanban (`/co/jobs/:id`). The whole
+ * card is the drag handle. Distinct from `KanbanCard` (the cycle-3 company-wide
+ * board): this card's subject is an `application` (`data-application-id`), and
+ * its primary label carries `data-testid="kanban-card-label"` so the kanban
+ * geometry verifier can confirm the label is not truncated.
+ */
+export function ApplicantKanbanCard({
+  applicationId,
+  initials,
+  headline,
+  meta,
+  source,
+  onOpen,
+}: ApplicantKanbanCardProps) {
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+    id: applicationId,
+  });
+  return (
+    <div
+      ref={setNodeRef}
+      data-testid="kanban-card"
+      data-application-id={applicationId}
+      style={{
+        transform: transform ? CSS.Translate.toString(transform) : undefined,
+        zIndex: isDragging ? 50 : undefined,
+      }}
+      {...attributes}
+      {...listeners}
+      onClick={onOpen}
+      className={cx(
+        "relative flex cursor-grab flex-col gap-2 rounded-xl border px-4 py-3",
+        "border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-raised)]",
+        "transition-colors hover:border-[color:var(--color-border-default)]",
+        "focus-visible:outline-2 focus-visible:outline-[color:var(--color-border-accent)]",
+        isDragging && "cursor-grabbing opacity-60 shadow-lg",
+      )}
+    >
+      <div className="flex items-start gap-3">
+        <span
+          aria-hidden
+          className={cx(
+            "flex h-9 w-9 shrink-0 items-center justify-center rounded-none border font-mono text-mono-sm font-semibold",
+            "border-[color:var(--color-border-accent)] bg-[color:var(--color-accent-soft)]",
+            textColor.accent,
+          )}
+        >
+          {initials}
+        </span>
+        <div className="min-w-0 flex-1">
+          <div
+            data-testid="kanban-card-label"
+            className={cx("truncate text-body-sm font-medium", textColor.strong)}
+          >
+            {headline ?? "Account Executive"}
+          </div>
+          {meta ? (
+            <div
+              className={cx("data-mono truncate font-mono text-mono-xs uppercase", textColor.muted)}
+            >
+              {meta}
+            </div>
+          ) : null}
+        </div>
+      </div>
+      <div className="flex items-center justify-between gap-2">
+        {source === "company_sourced" ? (
+          <Badge tone="info">SOURCED</Badge>
+        ) : (
+          <Badge tone="good">APPLIED</Badge>
+        )}
+        <span
+          aria-hidden
+          className={cx("data-mono font-mono text-mono-xs uppercase", textColor.muted)}
+        >
+          drag to move
+        </span>
+      </div>
+    </div>
+  );
+}
+
 // ────────────── KanbanColumn ──────────────
 
 export interface KanbanColumnProps {
@@ -206,10 +305,12 @@ export function KanbanColumn({ stageId, header, children, emptyLabel }: KanbanCo
       data-testid="kanban-column"
       data-pipeline-stage-id={stageId}
       className={cx(
-        // 176px — six stage columns fit a 1440px viewport without horizontal
-        // scroll, and overflow (scroll) at ≤1280px. shrink-0 keeps every column
-        // its full width inside the board's horizontal scroll region.
-        "flex w-[176px] shrink-0 flex-col gap-3 rounded-xl border p-3 transition-colors",
+        // 300px — a readable column width. The board owns the horizontal
+        // scroll (KanbanBoard has overflow-x-auto), so columns are NEVER
+        // shrunk to fit a viewport — `shrink-0` holds each column at its full
+        // 300px and the track scrolls within the board's own region. A column
+        // width below ~280px truncates card labels (cycle-4 regression).
+        "flex w-[300px] shrink-0 flex-col gap-3 rounded-xl border p-3 transition-colors",
         "border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-raised-translucent)]",
         isOver && "border-[color:var(--color-border-accent)] bg-[color:var(--color-accent-soft)]",
       )}

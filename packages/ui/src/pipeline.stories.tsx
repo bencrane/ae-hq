@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import {
+  ApplicantKanbanCard,
   CandidateTimeline,
   KanbanBoard,
   KanbanCard,
@@ -105,6 +106,36 @@ export const KanbanBoardDefault: StoryObj = {
         header={<StageHeader name="Closed" count={0} color="muted" isTerminal />}
         emptyLabel="None"
       />
+    </KanbanBoard>
+  ),
+};
+
+// ApplicantKanbanCard is the per-job board's card — it uses dnd-kit's
+// useDraggable and must render inside a DndContext (KanbanBoard provides one).
+export const ApplicantKanbanCardDefault: StoryObj = {
+  name: "ApplicantKanbanCard",
+  render: () => (
+    <KanbanBoard aria-label="Applicant card preview">
+      <KanbanColumn
+        stageId="stage-1"
+        header={<StageHeader name="New" count={2} color="info" />}
+      >
+        <ApplicantKanbanCard
+          applicationId="app-1"
+          initials="SA"
+          headline="Enterprise AE — 7yrs closing $100K+ ACV in fintech"
+          meta="Enterprise // 7 yrs"
+          source="candidate_applied"
+          onOpen={() => {}}
+        />
+        <ApplicantKanbanCard
+          applicationId="app-2"
+          initials="MR"
+          headline="Mid-Market AE — velocity sales"
+          meta="MidMarket // 5 yrs"
+          source="company_sourced"
+        />
+      </KanbanColumn>
     </KanbanBoard>
   ),
 };

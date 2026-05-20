@@ -89,6 +89,23 @@ Every primitive is token-typed. Spacing/color/font-size props accept token names
 - `<Drawer>` — side panel (left/right)
 - `<Tooltip>` — hover/focus reveal
 
+#### Jobs
+
+- `<JobCard>` — a job card (portal variant); shows applied-state
+- `<CollectionRow>` — horizontal-scrolling strip of job cards
+- `<CollectionSection>` — a titled collection: heading + `CollectionRow`
+- `<FunnelSummary>` — compact per-stage applicant breakdown for the jobs overview
+- `<CompanyProfileHeader>` — company profile masthead (logo + firmographic facts)
+
+#### Pipeline
+
+- `<KanbanBoard>` — horizontal-scrolling kanban column container (owns drag context)
+- `<KanbanColumn>` — one stage column (a dnd-kit droppable)
+- `<KanbanCard>` — company-wide pipeline candidate card (cycle 3)
+- `<ApplicantKanbanCard>` — per-job application card (cycle 5); subject is an `application`
+- `<StageHeader>` — kanban column header (name + count + accent)
+- `<CandidateTimeline>` / `<TimelineEntry>` — per-candidate activity feed
+
 #### Motion
 
 - `<AppearOnMount>` — opacity 0 → 1

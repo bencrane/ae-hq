@@ -159,6 +159,22 @@ export {
   type DataDropCardProps,
 } from "./feed";
 
+// Jobs (cycle 5)
+export {
+  JobCard,
+  CollectionRow,
+  CollectionSection,
+  FunnelSummary,
+  CompanyProfileHeader,
+  type JobCardProps,
+  type CollectionRowProps,
+  type CollectionSectionProps,
+  type FunnelSummaryProps,
+  type FunnelStageDatum,
+  type CompanyProfileHeaderProps,
+  type CompanyProfileFact,
+} from "./jobs";
+
 // Markdown
 export { Markdown } from "./markdown";
 
@@ -167,12 +183,14 @@ export {
   KanbanBoard,
   KanbanColumn,
   KanbanCard,
+  ApplicantKanbanCard,
   StageHeader,
   CandidateTimeline,
   TimelineEntry,
   type KanbanBoardProps,
   type KanbanColumnProps,
   type KanbanCardProps,
+  type ApplicantKanbanCardProps,
   type StageHeaderProps,
   type CandidateTimelineProps,
   type TimelineEntryProps,
