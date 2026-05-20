@@ -8,6 +8,7 @@ import { meRoutes } from "./routes/me";
 import { candidatesRoutes } from "./routes/candidates";
 import { credentialsRoutes } from "./routes/credentials";
 import { companyRoutes } from "./routes/company";
+import { companyJobsRoutes } from "./routes/company-jobs";
 import { notificationsRoutes } from "./routes/notifications";
 import { conversationsRoutes } from "./routes/conversations";
 import { articlesRoutes } from "./routes/articles";
@@ -28,6 +29,9 @@ const authedV1 = new Hono<{ Variables: Variables }>()
   // mounted as a second router at the same prefix; the paths do not collide
   // with companyRoutes (/me, /candidates, /billing, /ats).
   .route("/company", pipelineRoutes)
+  // cycle-5 per-job surfaces under /company (/company/jobs/...) — a third
+  // router at the same prefix; /jobs does not collide with the routers above.
+  .route("/company", companyJobsRoutes)
   .route("/notifications", notificationsRoutes)
   .route("/conversations", conversationsRoutes);
 

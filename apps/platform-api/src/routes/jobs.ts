@@ -1,9 +1,10 @@
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
-import { jobSearchQuerySchema } from "@ae-hq/shared";
+import { applyJobBodySchema, jobSearchQuerySchema } from "@ae-hq/shared";
 import { supabaseAdmin } from "../db";
 import { verifyJwt } from "../auth";
 import type { Variables } from "../middleware";
+import { buildJobCollections } from "./job-collections";
 
 // `/jobs` lives in the PUBLIC route group — anonymous browse must keep working.
 // To support `?for_me=true` the handler optionally reads the JWT when present
@@ -87,6 +88,18 @@ export const jobsRoutes = new Hono<{ Variables: Variables }>()
       }),
     });
   })
+  // GET /api/v1/jobs/collections — curated job collections grouped by a
+  // firmographic axis (sales_motion, funding stage, investor). Optional bearer
+  // token: when a candidate is signed in, each card carries an `applied` flag.
+  // Declared BEFORE `/:id` so the literal path is not swallowed by the param.
+  .get("/collections", async (c) => {
+    const userId = await optionalUserId(c.req.header("authorization"));
+    const result = await buildJobCollections(userId);
+    if (!result.ok) {
+      return c.json({ error: { code: "db_error", message: result.message } }, 500);
+    }
+    return c.json({ collections: result.collections });
+  })
   .get("/:id", async (c) => {
     const id = c.req.param("id");
     const { data, error } = await supabaseAdmin
@@ -98,4 +111,86 @@ export const jobsRoutes = new Hono<{ Variables: Variables }>()
     if (!data) return c.json({ error: { code: "not_found", message: "job not found" } }, 404);
     const { companies, ...job } = data as Record<string, unknown> & { companies: unknown };
     return c.json({ job: { ...job, company: companies } });
+  })
+  // POST /api/v1/jobs/:id/apply — a candidate applies to a specific job.
+  // Idempotent: re-applying is a no-op (the existing row is returned 200,
+  // `created: false`). Creates an `applications` row at the company's first
+  // pipeline stage with source='candidate_applied'. Requires a valid JWT —
+  // `jobsRoutes` is in the public group, so auth is enforced inline here.
+  .post("/:id/apply", zValidator("json", applyJobBodySchema), async (c) => {
+    const candidateId = await optionalUserId(c.req.header("authorization"));
+    if (!candidateId) {
+      return c.json({ error: { code: "unauthorized", message: "sign in to apply" } }, 401);
+    }
+    const jobId = c.req.param("id");
+
+    // the job + its company
+    const { data: job, error: jErr } = await supabaseAdmin
+      .from("jobs")
+      .select("id, company_id")
+      .eq("id", jobId)
+      .maybeSingle();
+    if (jErr) return c.json({ error: { code: "db_error", message: jErr.message } }, 500);
+    if (!job) return c.json({ error: { code: "not_found", message: "job not found" } }, 404);
+
+    // already applied? — idempotent no-op.
+    const { data: existing } = await supabaseAdmin
+      .from("applications")
+      .select("*")
+      .eq("job_id", jobId)
+      .eq("candidate_id", candidateId)
+      .maybeSingle();
+    if (existing) {
+      return c.json({ application: existing, created: false });
+    }
+
+    // the company's first (lowest-position) pipeline stage.
+    const { data: firstStage } = await supabaseAdmin
+      .from("pipeline_stages")
+      .select("id")
+      .eq("company_id", job.company_id)
+      .order("position", { ascending: true })
+      .limit(1)
+      .maybeSingle();
+    if (!firstStage) {
+      return c.json(
+        { error: { code: "no_stages", message: "the hiring company has no pipeline stages" } },
+        409,
+      );
+    }
+
+    const { data: created, error: cErr } = await supabaseAdmin
+      .from("applications")
+      .insert({
+        job_id: jobId,
+        candidate_id: candidateId,
+        stage_id: firstStage.id,
+        status: "applied",
+        source: "candidate_applied",
+      })
+      .select("*")
+      .maybeSingle();
+    if (cErr) {
+      // a concurrent apply lost the UNIQUE(job_id,candidate_id) race — treat as
+      // an idempotent no-op rather than a 500.
+      const { data: raced } = await supabaseAdmin
+        .from("applications")
+        .select("*")
+        .eq("job_id", jobId)
+        .eq("candidate_id", candidateId)
+        .maybeSingle();
+      if (raced) return c.json({ application: raced, created: false });
+      return c.json({ error: { code: "db_error", message: cErr.message } }, 500);
+    }
+
+    // log an added_to_pipeline activity row keyed on application_id.
+    if (created) {
+      await supabaseAdmin.from("pipeline_activity").insert({
+        application_id: created.id,
+        actor_user_id: candidateId,
+        kind: "added_to_pipeline",
+        payload_json: { stage_id: firstStage.id },
+      });
+    }
+    return c.json({ application: created, created: true });
   });

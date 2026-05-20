@@ -153,6 +153,32 @@ export const candidatesRoutes = new Hono<{ Variables: Variables }>()
       }),
     });
   })
+  // GET /api/v1/candidates/me/applications — the candidate's own applications,
+  // each joined with its job + company + the stage name (cycle 5).
+  .get("/me/applications", async (c) => {
+    const userId = c.get("userId");
+    const { data, error } = await supabaseAdmin
+      .from("applications")
+      .select(
+        "*, pipeline_stages!inner(name), " +
+          "jobs!inner(id, title, segment, location, is_remote, ote_min, ote_max, " +
+          "companies!inner(id, slug, name, logo_url))",
+      )
+      .eq("candidate_id", userId)
+      .order("created_at", { ascending: false });
+    if (error) return c.json({ error: { code: "db_error", message: error.message } }, 500);
+    type Row = Record<string, unknown> & {
+      pipeline_stages: { name: string };
+      jobs: Record<string, unknown> & { companies: unknown };
+    };
+    return c.json({
+      applications: ((data ?? []) as unknown as Row[]).map((row) => {
+        const { pipeline_stages, jobs, ...rest } = row;
+        const { companies, ...job } = jobs;
+        return { ...rest, stage_name: pipeline_stages.name, job: { ...job, company: companies } };
+      }),
+    });
+  })
   // POST /api/v1/candidates/me/approvals/:id/accept
   .post(
     "/me/approvals/:id/accept",
