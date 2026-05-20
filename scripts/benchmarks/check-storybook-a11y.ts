@@ -105,14 +105,19 @@ async function main() {
       await page.addScriptTag({ url: AXE_SOURCE_URL });
       const result = await page.evaluate(async () => {
         // Storybook renders each component in ISOLATION inside an iframe.
-        // Three axe rules are page-document-structure rules that can never
+        // Several axe rules are page-document-structure rules that can never
         // pass for an isolated component and are not component defects:
         //   - landmark-one-main   (a page should have one <main>)
         //   - page-has-heading-one(a page should have an <h1>)
         //   - region              (all content should sit inside a landmark)
-        // We disable exactly those three. Every component-level rule
-        // (color-contrast, ARIA names/required-attrs, labels, roles,
-        // keyboard) stays fully enforced.
+        //   - document-title      (the page document needs a <title>)
+        //   - html-has-lang       (the page <html> needs a lang attribute)
+        // The last two are owned by Storybook's iframe document template, not
+        // the component — and under `storybook dev` they can flake when axe
+        // runs before the preview finishes initializing the iframe <head>.
+        // We disable exactly those five document-structure rules. Every
+        // component-level rule (color-contrast, ARIA names/required-attrs,
+        // labels, roles, keyboard) stays fully enforced.
         // @ts-expect-error – axe is injected at runtime
         const r = await window.axe.run(document, {
           resultTypes: ["violations"],
@@ -121,6 +126,8 @@ async function main() {
             "landmark-one-main": { enabled: false },
             "page-has-heading-one": { enabled: false },
             region: { enabled: false },
+            "document-title": { enabled: false },
+            "html-has-lang": { enabled: false },
           },
         });
         return {
