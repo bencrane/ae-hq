@@ -116,10 +116,7 @@ export const ApplicantKanbanCardDefault: StoryObj = {
   name: "ApplicantKanbanCard",
   render: () => (
     <KanbanBoard aria-label="Applicant card preview">
-      <KanbanColumn
-        stageId="stage-1"
-        header={<StageHeader name="New" count={2} color="info" />}
-      >
+      <KanbanColumn stageId="stage-1" header={<StageHeader name="New" count={2} color="info" />}>
         <ApplicantKanbanCard
           applicationId="app-1"
           initials="SA"

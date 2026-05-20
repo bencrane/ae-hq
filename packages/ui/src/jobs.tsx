@@ -84,7 +84,9 @@ export function JobCard({
           <div className={cx("truncate font-display text-body-lg leading-tight", textColor.strong)}>
             {title}
           </div>
-          <div className={cx("data-mono truncate font-mono text-mono-xs uppercase", textColor.muted)}>
+          <div
+            className={cx("data-mono truncate font-mono text-mono-xs uppercase", textColor.muted)}
+          >
             {companyName} {"//"} {location}
           </div>
         </div>
@@ -113,11 +115,7 @@ export interface CollectionRowProps {
  * the collection scrolls within itself, not the page.
  */
 export function CollectionRow({ children }: CollectionRowProps) {
-  return (
-    <div className="flex gap-4 overflow-x-auto pb-2">
-      {children}
-    </div>
-  );
+  return <div className="flex gap-4 overflow-x-auto pb-2">{children}</div>;
 }
 
 // ────────────── CollectionSection ──────────────
@@ -141,13 +139,14 @@ export function CollectionSection({ title, subtitle, children }: CollectionSecti
       <div className="flex flex-col gap-1">
         <h3
           data-testid="job-collection-title"
-          className={cx("font-display text-display-sm font-semibold tracking-tight", textColor.strong)}
+          className={cx(
+            "font-display text-display-sm font-semibold tracking-tight",
+            textColor.strong,
+          )}
         >
           {title}
         </h3>
-        {subtitle ? (
-          <p className={cx("text-body-sm", textColor.muted)}>{subtitle}</p>
-        ) : null}
+        {subtitle ? <p className={cx("text-body-sm", textColor.muted)}>{subtitle}</p> : null}
       </div>
       <CollectionRow>{children}</CollectionRow>
     </section>
