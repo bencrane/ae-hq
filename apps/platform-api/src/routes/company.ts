@@ -7,6 +7,8 @@ import {
   billingCheckoutRequestSchema,
   atsConnectRequestSchema,
   atsVendorSchema,
+  deriveSalesMotion,
+  type SalesMotion,
 } from "@ae-hq/shared";
 import { z } from "zod";
 import { supabaseAdmin } from "../db";
@@ -76,7 +78,7 @@ export const companyRoutes = new Hono<{ Variables: Variables }>()
     let qb = supabaseAdmin
       .from("candidates")
       .select(
-        "user_id, headline, segment_focus, methodology, current_company_id, profiles!inner(name), ae_work_history(company_id, start_date, end_date, companies(id, name, logo_url))",
+        "user_id, headline, segment_focus, methodology, current_company_id, profiles!inner(name), ae_work_history(company_id, start_date, end_date, companies(id, name, logo_url, sales_motion))",
         { count: "exact" },
       );
     if (q.segment) qb = qb.eq("segment_focus", q.segment);
@@ -97,6 +99,12 @@ export const companyRoutes = new Hono<{ Variables: Variables }>()
     qb = qb.range(q.offset, q.offset + q.limit - 1);
     const { data, error, count } = await qb;
     if (error) return c.json({ error: { code: "db_error", message: error.message } }, 500);
+    type WorkedAtCompany = {
+      id: string;
+      name: string;
+      logo_url: string | null;
+      sales_motion: SalesMotion | null;
+    };
     type Row = {
       user_id: string;
       headline: string | null;
@@ -104,7 +112,11 @@ export const companyRoutes = new Hono<{ Variables: Variables }>()
       methodology: string[];
       current_company_id: string | null;
       profiles: { name: string };
-      ae_work_history: { start_date: string; end_date: string | null; companies: { id: string; name: string; logo_url: string | null } | null }[];
+      ae_work_history: {
+        start_date: string;
+        end_date: string | null;
+        companies: WorkedAtCompany | null;
+      }[];
     };
     const result = (data as unknown as Row[]).map((row) => {
       const years = Math.max(
@@ -119,7 +131,9 @@ export const companyRoutes = new Hono<{ Variables: Variables }>()
       );
       const workedAt = row.ae_work_history
         .map((h) => h.companies)
-        .filter((co): co is { id: string; name: string; logo_url: string | null } => Boolean(co));
+        .filter((co): co is WorkedAtCompany => Boolean(co));
+      // Derive the candidate's sales motion from their work-history companies.
+      const salesMotion = deriveSalesMotion(workedAt.map((co) => co.sales_motion));
       return {
         id: row.user_id,
         initials: initials(row.profiles.name),
@@ -128,7 +142,13 @@ export const companyRoutes = new Hono<{ Variables: Variables }>()
         methodology: row.methodology,
         years_experience: years,
         current_stage_pattern: row.current_company_id ? "active" : "between roles",
-        worked_at_companies: workedAt,
+        sales_motion: salesMotion.motion,
+        sales_motion_label: salesMotion.label,
+        worked_at_companies: workedAt.map((co) => ({
+          id: co.id,
+          name: co.name,
+          logo_url: co.logo_url,
+        })),
       };
     });
     return c.json({ candidates: result, total: count ?? result.length });
@@ -158,7 +178,7 @@ export const companyRoutes = new Hono<{ Variables: Variables }>()
     const isUnlocked = unlock?.status === "accepted";
     const { data: history } = await supabaseAdmin
       .from("ae_work_history")
-      .select("*, companies(id, name, logo_url, slug)")
+      .select("*, companies(id, name, logo_url, slug, sales_motion, stage, founded_year)")
       .eq("candidate_id", id)
       .order("start_date", { ascending: false });
     const { data: creds } = await supabaseAdmin
@@ -167,6 +187,12 @@ export const companyRoutes = new Hono<{ Variables: Variables }>()
       .eq("candidate_id", id);
     type Row = { profiles: { name: string; email: string } };
     const typed = cand as unknown as Row & { headline: string | null; segment_focus: string | null; methodology: string[] };
+    // Derive the candidate's sales motion from their work-history companies.
+    type HistoryRow = { companies: { sales_motion: SalesMotion | null } | null };
+    const workHistory = (history ?? []) as HistoryRow[];
+    const salesMotion = deriveSalesMotion(
+      workHistory.map((h) => h.companies?.sales_motion ?? null),
+    );
     return c.json({
       candidate: {
         id,
@@ -174,6 +200,8 @@ export const companyRoutes = new Hono<{ Variables: Variables }>()
         headline: typed.headline,
         segment_focus: typed.segment_focus,
         methodology: typed.methodology,
+        sales_motion: salesMotion.motion,
+        sales_motion_label: salesMotion.label,
         // Reveal email/name only if unlocked
         name: isUnlocked ? typed.profiles.name : null,
         email: isUnlocked ? typed.profiles.email : null,

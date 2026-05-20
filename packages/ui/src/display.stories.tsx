@@ -7,6 +7,7 @@ import {
   Card,
   CardBody,
   CardHeader,
+  CompanyLogo,
   DataTable,
   KVTable,
   Pagination,
@@ -68,6 +69,17 @@ export const AvatarImage: StoryObj = {
       alt="Sample"
       size="md"
     />
+  ),
+};
+
+export const CompanyLogoMonogram: StoryObj = {
+  name: "CompanyLogo — monogram fallback",
+  render: () => (
+    <div className="flex items-center gap-3">
+      <CompanyLogo name="Stripe" size="sm" />
+      <CompanyLogo name="Snowflake" size="md" />
+      <CompanyLogo name="HashiCorp" logoUrl="https://invalid.example/nope.png" size="lg" />
+    </div>
   ),
 };
 

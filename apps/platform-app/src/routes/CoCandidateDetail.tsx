@@ -11,6 +11,7 @@ import {
   CardBody,
   Button,
   Badge,
+  CompanyLogo,
   Stack,
   Inline,
 } from "@ae-hq/ui";
@@ -77,11 +78,9 @@ export function CoCandidateDetail() {
               </div>
               <div className="mt-3 flex flex-wrap gap-2">
                 {c.segment_focus ? <Badge>{c.segment_focus}</Badge> : null}
-                {c.methodology.map((m: string) => (
-                  <Badge key={m} tone="muted">
-                    {m}
-                  </Badge>
-                ))}
+                <Badge tone="info" data-testid="derived-sales-motion">
+                  {c.sales_motion_label}
+                </Badge>
                 {c.is_unlocked ? <Badge tone="good">UNLOCKED</Badge> : null}
                 {c.unlock_status === "pending" ? <Badge tone="warn">PENDING</Badge> : null}
               </div>
@@ -120,11 +119,7 @@ export function CoCandidateDetail() {
               <Card key={h.id as string}>
                 <CardBody>
                   <div className="flex items-center gap-4">
-                    {co?.logo_url ? (
-                      <img src={co.logo_url} alt="" className="h-10 w-10 rounded" />
-                    ) : (
-                      <div className="h-10 w-10 rounded bg-[color:var(--color-surface-raised)]" />
-                    )}
+                    <CompanyLogo name={co?.name ?? "Unknown"} logoUrl={co?.logo_url} size="md" />
                     <div className="flex-1">
                       <div className="font-medium">
                         {h.title as string} {"//"} {co?.name ?? "Unknown"}
@@ -140,26 +135,6 @@ export function CoCandidateDetail() {
               </Card>
             );
           })}
-        </Stack>
-      </PageSection>
-
-      <PageSection section="03" title="Credentials">
-        <Stack gap="3">
-          {(c.credentials as Array<Record<string, unknown>>).map((cr, idx) => (
-            <Card key={`${cr.kind as string}-${idx}`}>
-              <CardBody>
-                <div className="data-mono font-mono text-body-sm uppercase text-[color:var(--color-text-accent)]">
-                  {cr.kind as string}
-                </div>
-                <pre className="data-mono mt-2 font-mono text-mono-xs text-[color:var(--color-text-default)]">
-                  {JSON.stringify(cr.value_json, null, 2)}
-                </pre>
-                <div className="mt-3">
-                  <Badge tone="good">{(cr.verification_tier as string).toUpperCase()}</Badge>
-                </div>
-              </CardBody>
-            </Card>
-          ))}
         </Stack>
       </PageSection>
     </Page>
