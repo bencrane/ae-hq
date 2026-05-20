@@ -103,7 +103,7 @@ export function TabList({
           >
             {t.label}
             {typeof t.count === "number" ? (
-              <span className={cx("ml-2", active ? textColor.accent : textColor.subtle)}>
+              <span className={cx("ml-2", active ? textColor.accent : textColor.muted)}>
                 {t.count}
               </span>
             ) : null}
@@ -122,12 +122,16 @@ export interface TabPanelProps {
   children?: ReactNode;
 }
 
-/** A single tab panel — rendered only when active. */
+/**
+ * A single tab panel. The element is ALWAYS rendered (inactive panels use the
+ * `hidden` attribute) so each tab's `aria-controls` target always exists —
+ * `aria-controls` pointing at a non-rendered id is an invalid ARIA value.
+ */
 export function TabPanel({ tabId, activeId, children }: TabPanelProps) {
-  if (tabId !== activeId) return null;
+  const active = tabId === activeId;
   return (
-    <div role="tabpanel" id={`tabpanel-${tabId}`} aria-labelledby={`tab-${tabId}`}>
-      {children}
+    <div role="tabpanel" id={`tabpanel-${tabId}`} aria-labelledby={`tab-${tabId}`} hidden={!active}>
+      {active ? children : null}
     </div>
   );
 }

@@ -78,14 +78,14 @@ export function ConversationListItem({
         <div className="flex items-baseline justify-between gap-2">
           <span className={cx("truncate text-body-sm font-medium", textColor.strong)}>{name}</span>
           {timestamp ? (
-            <span className={cx("data-mono shrink-0 font-mono text-mono-xs", textColor.subtle)}>
+            <span className={cx("data-mono shrink-0 font-mono text-mono-xs", textColor.muted)}>
               {timestamp}
             </span>
           ) : null}
         </div>
         {subtitle ? (
           <div
-            className={cx("data-mono truncate font-mono text-mono-xs uppercase", textColor.subtle)}
+            className={cx("data-mono truncate font-mono text-mono-xs uppercase", textColor.muted)}
           >
             {subtitle}
           </div>
@@ -138,7 +138,7 @@ export function MessageDayDivider({ label }: MessageDayDividerProps) {
   return (
     <div className="flex items-center gap-3 py-2">
       <span aria-hidden className="h-px flex-1 bg-[color:var(--color-border-subtle)]" />
-      <span className={cx("data-mono font-mono text-mono-xs uppercase", textColor.subtle)}>
+      <span className={cx("data-mono font-mono text-mono-xs uppercase", textColor.muted)}>
         {label}
       </span>
       <span aria-hidden className="h-px flex-1 bg-[color:var(--color-border-subtle)]" />
@@ -179,7 +179,7 @@ export function MessageBubble({ body, mine, timestamp, read }: MessageBubbleProp
         {body}
       </div>
       {timestamp ? (
-        <span className={cx("data-mono font-mono text-mono-xs", textColor.subtle)}>
+        <span className={cx("data-mono font-mono text-mono-xs", textColor.muted)}>
           {timestamp}
           {mine ? <span className="ml-1">{read ? "// READ" : "// SENT"}</span> : null}
         </span>
@@ -196,11 +196,18 @@ export interface MessageThreadProps {
   "aria-label"?: string;
 }
 
-/** Scrollable column of message bubbles + day dividers. */
+/**
+ * Scrollable column of message bubbles + day dividers. `tabIndex={0}` makes
+ * the scroll region keyboard-reachable (axe `scrollable-region-focusable`);
+ * `role="log"` marks it as an append-only message log for assistive tech.
+ */
 export function MessageThread({ children, "aria-label": ariaLabel }: MessageThreadProps) {
   return (
     <div
+      role="log"
       aria-label={ariaLabel ?? "Message thread"}
+      // biome-ignore lint/a11y/noNoninteractiveTabindex: a scrollable region must be keyboard-reachable — axe's scrollable-region-focusable rule requires tabIndex on the scroll container
+      tabIndex={0}
       className="flex flex-1 flex-col gap-3 overflow-y-auto px-6 py-6"
     >
       {children}
@@ -295,7 +302,7 @@ export function ThreadEmptyState({ title, description }: ThreadEmptyStateProps) 
       <div
         className={cx(
           "data-mono font-mono text-mono-xs uppercase tracking-[0.2em]",
-          textColor.subtle,
+          textColor.muted,
         )}
       >
         {">"}_ INBOX

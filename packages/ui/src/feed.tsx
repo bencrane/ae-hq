@@ -64,7 +64,7 @@ export function ArticleCard({
         <div className="flex items-center gap-2">
           <Badge tone="info">{KIND_LABEL[kind]}</Badge>
           {typeof readMinutes === "number" ? (
-            <span className={cx("data-mono font-mono text-mono-xs uppercase", textColor.subtle)}>
+            <span className={cx("data-mono font-mono text-mono-xs uppercase", textColor.muted)}>
               {readMinutes} min read
             </span>
           ) : null}
@@ -80,7 +80,7 @@ export function ArticleCard({
         {dek ? <p className={cx("text-body-sm", textColor.muted)}>{dek}</p> : null}
         <div className="flex items-center justify-between gap-3">
           {authorName ? (
-            <span className={cx("data-mono font-mono text-mono-xs uppercase", textColor.subtle)}>
+            <span className={cx("data-mono font-mono text-mono-xs uppercase", textColor.muted)}>
               By {authorName}
             </span>
           ) : (
@@ -140,7 +140,7 @@ export function ArticleCardCompact({
         <div className="flex items-center gap-2">
           <Badge tone="info">{KIND_LABEL[kind]}</Badge>
           {typeof readMinutes === "number" ? (
-            <span className={cx("data-mono font-mono text-mono-xs uppercase", textColor.subtle)}>
+            <span className={cx("data-mono font-mono text-mono-xs uppercase", textColor.muted)}>
               {readMinutes} min
             </span>
           ) : null}
@@ -154,7 +154,7 @@ export function ArticleCardCompact({
           {title}
         </div>
         {authorName ? (
-          <div className={cx("data-mono mt-1 font-mono text-mono-xs uppercase", textColor.subtle)}>
+          <div className={cx("data-mono mt-1 font-mono text-mono-xs uppercase", textColor.muted)}>
             Carrying Quota {"//"} {authorName}
           </div>
         ) : null}

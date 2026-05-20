@@ -137,10 +137,7 @@ export function KanbanCard({
           </div>
           {meta ? (
             <div
-              className={cx(
-                "data-mono truncate font-mono text-mono-xs uppercase",
-                textColor.subtle,
-              )}
+              className={cx("data-mono truncate font-mono text-mono-xs uppercase", textColor.muted)}
             >
               {meta}
             </div>
@@ -154,7 +151,7 @@ export function KanbanCard({
         {hasConversation ? (
           <Badge tone="good">IN CONVERSATION</Badge>
         ) : (
-          <span className={cx("data-mono font-mono text-mono-xs uppercase", textColor.subtle)}>
+          <span className={cx("data-mono font-mono text-mono-xs uppercase", textColor.muted)}>
             no thread
           </span>
         )}
@@ -238,7 +235,7 @@ export function KanbanColumn({ header, children, emptyLabel }: KanbanColumnProps
               "rounded-xl border border-dashed px-3 py-6 text-center",
               "border-[color:var(--color-border-subtle)]",
               "data-mono font-mono text-mono-xs uppercase",
-              textColor.subtle,
+              textColor.muted,
             )}
           >
             {emptyLabel ?? "Empty"}
@@ -312,7 +309,7 @@ export function TimelineEntry({ kind, timestamp, description }: TimelineEntryPro
       <div className="flex-1 pb-4">
         <div className="flex items-center gap-2">
           <Badge tone={ENTRY_TONE[kind]}>{ENTRY_LABEL[kind]}</Badge>
-          <span className={cx("data-mono font-mono text-mono-xs uppercase", textColor.subtle)}>
+          <span className={cx("data-mono font-mono text-mono-xs uppercase", textColor.muted)}>
             {timestamp}
           </span>
         </div>
@@ -335,7 +332,7 @@ export function CandidateTimeline({ children, emptyLabel }: CandidateTimelinePro
   const hasChildren = Array.isArray(children) ? children.length > 0 : Boolean(children);
   if (!hasChildren) {
     return (
-      <div className={cx("data-mono font-mono text-mono-xs uppercase", textColor.subtle)}>
+      <div className={cx("data-mono font-mono text-mono-xs uppercase", textColor.muted)}>
         {emptyLabel ?? "No activity yet."}
       </div>
     );

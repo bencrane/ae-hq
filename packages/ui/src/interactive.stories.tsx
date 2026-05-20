@@ -35,14 +35,6 @@ export const TabsDefault: StoryObj = {
   },
 };
 
-export const TabListOnly: StoryObj = {
-  name: "TabList — standalone",
-  render: () => {
-    const [tab, setTab] = useState("comp");
-    return <TabList aria-label="Sections" value={tab} onValueChange={setTab} items={TAB_ITEMS} />;
-  },
-};
-
 const SEGMENT_OPTIONS = [
   { value: "SMB", label: "SMB" },
   { value: "MidMarket", label: "Mid-Market" },
